@@ -1,0 +1,17 @@
+Ref,Domain,Control Question,Vendor Response,Status,Comments
+GEN-1,General,Briefly describe the solution and how Harbor staff will use it.,,Not Started,
+SEC-1,Information Security,Attach your latest SOC 2 Type II report (or HITRUST certification) and bridge letter if the period ended more than 3 months ago.,,Not Started,
+SEC-2,Information Security,Does the solution support SAML 2.0 single sign-on with the customer's IdP? Is SCIM provisioning supported?,Yes - SAML supported,Draft,check with eng re SCIM
+SEC-3,Information Security,Describe encryption of Harbor data in transit and at rest (algorithms / key management).,,Not Started,
+SEC-4,Information Security,Date and summary of the most recent independent penetration test; status of high/medium findings.,,Not Started,
+SEC-5,Information Security,How is privileged/administrative access to production restricted and reviewed?,,Not Started,
+SEC-6,Information Security,Describe your incident response plan and the timeframe in which Harbor will be notified of a security incident or breach.,72 hours,Draft,copied from Cobalt answer?
+PRIV-1,Privacy & HIPAA,Will the vendor create/receive/maintain/transmit PHI on Harbor's behalf? Will the vendor sign Harbor's Business Associate Agreement?,,Not Started,
+PRIV-2,Privacy & HIPAA,Describe how PHI is minimised or de-identified before processing by any AI model.,,Not Started,
+PRIV-3,Privacy & HIPAA,List all subcontractors/subprocessors that may access PHI and confirm each has a BAA (or equivalent) with the vendor.,,Not Started,
+PRIV-4,Privacy & HIPAA,Confirm all Harbor data (including backups and logs) is stored and processed only within the United States.,US only,Draft,
+PRIV-5,Privacy & HIPAA,"State retention periods for ticket content, prompts/outputs and application logs.",30 days,Draft,
+AI-1,AI Governance,Is Harbor data used to train or fine-tune models (yours or a third party's)?,,Not Started,
+AI-2,AI Governance,Describe how outputs are evaluated for accuracy and how hallucinations are surfaced to users.,,Not Started,
+BC-1,Business Continuity,Provide RTO/RPO and date of last DR test.,,Not Started,
+INS-1,Insurance,Provide certificate of cyber liability insurance (min $5M).,,Not Started,

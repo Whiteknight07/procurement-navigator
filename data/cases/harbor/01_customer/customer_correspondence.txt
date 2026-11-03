@@ -1,0 +1,27 @@
+From: Dana Whitfield <dwhitfield@harborrh.org> (Third-Party Risk Manager)
+Date: Oct 6
+Subject: Lantern AI - TPRM intake
+Hi Jai, thanks for the call. Attached is our HRH-TPRM v3 questionnaire. Our Security Review Committee meets the first Thursday of each month; to make the December 3 committee we need the completed questionnaire and evidence by November 21. Pilot go-live target is January 12, 2027 for the IT service desk.
+
+From: Dr. Priya Raman <praman@harborrh.org> (CISO)
+Date: Oct 14
+Subject: RE: Lantern AI - TPRM intake
+Jai - a few non-negotiables from security before we go further:
+1. We require SSO via SAML 2.0 against our Entra ID tenant, with SCIM or at least JIT provisioning. No local passwords for Harbor staff.
+2. Breach notification: under our vendor standard you must notify us of any suspected security incident affecting Harbor data within 30 days at the latest (our contract template says "without unreasonable delay and in no case later than 30 calendar days"). Please confirm you can sign to that.
+3. All Harbor data, including logs and backups, must stay in the United States. That includes wherever the model runs. Please tell us exactly which model providers see ticket text and where.
+4. Send your most recent SOC 2 Type II and pen test summary.
+
+From: Tom Becker <tbecker@harborrh.org> (Privacy Officer)
+Date: Oct 15
+Subject: HIPAA / PHI
+Hello, Tom Becker, Privacy Officer at Harbor. Even though this is an IT tool, our tickets routinely contain PHI (patient names, MRNs, room numbers) typed in by clinical staff, so we treat this as a HIPAA business associate relationship.
+- We need a signed Business Associate Agreement (BAA) before any production data is shared. Do you sign BAAs, and will you accept our BAA paper or only yours?
+- Describe how PHI is handled end to end: is it redacted before reaching the model, who can see it, and is it used for training by you or your model providers?
+- Do your model providers have BAAs with you (i.e. are they HIPAA-eligible downstream subcontractors)?
+- How long do you keep ticket text, prompts/outputs and logs? We would like the minimum necessary.
+
+From: Dana Whitfield
+Date: Oct 28
+Subject: RE: Lantern AI - TPRM intake - timing
+Reminder that Nov 21 is the cut-off for the December committee. If the BAA is not at least agreed in principle by then, we will have to push to the January committee (Jan 7), which puts the January 12 go-live at risk. Also - Priya asked whether you can do a pilot with de-identified tickets first while the BAA is negotiated; please tell us what that would change.

@@ -153,6 +153,24 @@ def load_inbox(errors: list[str] | None = None) -> list[Source]:
 
 _TEMPLATE_DIGITS = re.compile(r"\d+")
 
+# customers name their columns differently; map common headers to ours (lower-cased, trimmed)
+_COLUMNS = {
+    "id": {"id", "ref", "ref #", "ref no", "qid", "question id", "#", "no", "number", "control id"},
+    "section": {"section", "domain", "category", "area", "topic"},
+    "question": {"question", "control question", "requirement", "question text", "control", "ask"},
+    "draft_answer": {"draft_answer", "draft answer", "vendor response", "response", "answer",
+                     "supplier response"},
+    "note": {"note", "notes", "comments", "comment"},
+}
+_ALIAS = {a: col for col, names in _COLUMNS.items() for a in names}
+
+
+def _rows(text: str) -> list[dict]:
+    reader = csv.DictReader(io.StringIO(text))
+    reader.fieldnames = [_ALIAS.get((h or "").strip().lower(), (h or "").strip())
+                         for h in (reader.fieldnames or [])]
+    return list(reader)
+
 
 def parse_questionnaire(src: Source) -> tuple[list[Ask], list[dict]]:
     """Rows become asks. Rows whose text is the same boilerplate with only a number changed
@@ -162,7 +180,7 @@ def parse_questionnaire(src: Source) -> tuple[list[Ask], list[dict]]:
     the engine attaches them as hints to the facts of the requirement holding that row.
     """
     # short rows give None for missing cells; rows with no question are not asks
-    rows = [r for r in csv.DictReader(io.StringIO(src.text)) if (r.get("question") or "").strip()]
+    rows = [r for r in _rows(src.text) if (r.get("question") or "").strip()]
     shape = lambda q: _TEMPLATE_DIGITS.sub("#", q.strip().lower())
     counts: dict[str, int] = {}
     for r in rows:

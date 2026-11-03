@@ -1,0 +1,12 @@
+HARBOR REGIONAL HEALTH - VENDOR SECURITY & PRIVACY REVIEW (working folder)
+Customer: Harbor Regional Health (US hospital network, 6 hospitals + 40 clinics, Ohio/Pennsylvania)
+Supplier: Lantern AI Technologies Inc.
+Service: AI assistant that summarises clinical-operations IT tickets (ServiceNow queue for
+nursing-unit devices, EHR access issues, badge/printer problems) for the IT service desk.
+
+Notes from Jai (rough):
+- Harbor's review is run by their Third-Party Risk team; CISO (Dr. Priya Raman) and Privacy Officer (Tom Becker) both sign off.
+- They will not let anything with PHI near us without a BAA. Tickets sometimes contain patient names / MRNs pasted by nurses.
+- Their questionnaire is their own "HRH-TPRM v3" spreadsheet, not the one Acme used.
+- Old stuff in 04_knowledge is from Cobalt Insurance (a prior customer) - not Harbor.
+Nothing here is authoritative. Check owners before answering.

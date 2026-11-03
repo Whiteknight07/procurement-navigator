@@ -126,3 +126,13 @@ def test_pasted_vanta_input_is_not_evidence(tmp_path, monkeypatch):
     got = {s.id: s.system for s in sources.load_inbox(errors)}
     assert got == {"in-a": "notes", "in-b": "vanta"}
     assert any("not through the connector" in e for e in errors)
+
+
+def test_questionnaire_with_customer_column_names_parses():
+    text = ("Ref,Domain,Control Question,Vendor Response,Status,Comments\n"
+            "SEC-1,Security,Do you support SAML SSO?,Yes,Draft,\n"
+            "PRIV-3,Privacy,Will you sign a BAA?,,Not started,ask Legal\n")
+    src = Source(id="q", deal="harbor", system="questionnaire", title="q.csv", text=text, round=1)
+    asks, drafts = sources.parse_questionnaire(src)
+    assert [a.qid for a in asks] == ["SEC-1", "PRIV-3"]
+    assert asks[0].track == "Security" and len(drafts) == 1

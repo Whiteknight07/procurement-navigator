@@ -1,0 +1,11 @@
+#deal-harbor (Slack export, Oct 16-30)
+Jai: Harbor wants a BAA. Have we ever signed one?
+Mina: Not yet. We have a BAA template in review with outside counsel, not approved. Do NOT tell Harbor we sign BAAs until I confirm.
+Parsa: for Harbor we'd want the PHI redaction pass (names/MRNs) before the prompt - it exists in beta, not enabled for anyone yet.
+Anthony: Harbor app logs would be 7 days, we can do that for healthcare tenants.
+Anthony: actually wait, enterprise default is 14d since August, the 7d override isn't built. Treat app logs as 14 days until I say otherwise.
+Dev: SAML SSO works (Okta tested), Entra ID not tested. SCIM is on the roadmap, JIT only today.
+Anthony: US-only is fine for storage (us-east-1). Inference: OpenAI via Azure East US is possible but we normally route OpenAI direct; not decided for Harbor.
+Jai: Anthropic fallback for Harbor?
+Anthony: would need a BAA with them too. Probably off for Harbor.
+Mina: Breach notice - our standard MSA says 72 hours for confirmed breaches. 30 days is looser than ours, fine, but HIPAA says the BAA timing governs.

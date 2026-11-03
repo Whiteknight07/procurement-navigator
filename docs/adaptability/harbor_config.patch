@@ -1,0 +1,60 @@
+diff --git a/config/catalog.yaml b/config/catalog.yaml
+index 3c369ac..4b30583 100644
+--- a/config/catalog.yaml
++++ b/config/catalog.yaml
+@@ -222,3 +222,38 @@ facts:
+     owner: Customer
+     proof: customer
+     question: Whether the customer's Records Management review applies to this deal.
++
++  # ---------- added for healthcare (Harbor) ----------
++  baa_status:
++    level: deal
++    track: Legal
++    owner: Legal
++    proof: owner_confirmation
++    depends_on: [subprocessors, provider_baas]
++    question: Whether the supplier will sign a HIPAA Business Associate Agreement (BAA) with this customer, on whose paper, and what blocks it.
++  provider_baas:
++    level: deal
++    track: Legal
++    owner: Legal
++    proof: owner_confirmation
++    depends_on: [model_providers]
++    question: Whether each model provider and subprocessor that may see this customer's PHI has a BAA (or equivalent) with the supplier.
++  phi_handling:
++    level: deal
++    track: Privacy
++    owner: AI Engineering
++    proof: owner_confirmation
++    depends_on: [pilot_data_scope]
++    question: How protected health information (PHI) is handled for this customer end to end, including redaction or de-identification before the model and who can see it.
++  sso_saml:
++    level: deal
++    track: Security
++    owner: Engineering
++    proof: owner_confirmation
++    question: Whether SSO via SAML 2.0 with this customer's identity provider is supported and tested, and which provisioning (SCIM or just-in-time) is available.
++  breach_notification:
++    level: deal
++    track: Legal
++    owner: Legal
++    proof: owner_confirmation
++    question: The security incident / breach notification timeframe the supplier commits to for this customer (contract or BAA).
+diff --git a/config/deals.yaml b/config/deals.yaml
+index 1238eb1..2cd8327 100644
+--- a/config/deals.yaml
++++ b/config/deals.yaml
+@@ -12,6 +12,12 @@ deals:
+     folder: data/cases/northstar
+     questionnaire_rounds:
+       - {file: 02_questionnaires/vendor_risk_questionnaire.csv, round: 1}
++  harbor:
++    name: Harbor Regional Health
++    industry: Healthcare
++    folder: data/cases/harbor
++    questionnaire_rounds:
++      - {file: 02_questionnaires/hrh_tprm_v3.csv, round: 1, date: 2026-10-06}
+ 
+ # Dates written without a year (e.g. "Sep 14") are in this year. A real email connector has timestamps.
+ context_year: 2026
