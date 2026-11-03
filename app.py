@@ -413,10 +413,19 @@ def deal_page():
                         st.caption(f"Round {h['round']} {h['qid']} is a {h['relation'].replace('_', ' ')}"
                                    + (f": {h['added_part']}" if h["added_part"] else "")
                                    + (f". Warning: {h['reused_number']}" if h["reused_number"] else ""))
-                    if r.facts:
-                        st.markdown("Needs: " + ", ".join(
-                            f"{label(fact_key(deal, n, S.catalog))} "
-                            f"{badge(S.facts[fact_key(deal, n, S.catalog)].status)}" for n in r.facts))
+                    if r.facts:   # each question this answer needs: the proof if settled, else who can settle it
+                        st.markdown("**Needs these questions settled**")
+                        for n in r.facts:
+                            f = S.facts[fact_key(deal, n, S.catalog)]
+                            line = f"{badge(f.status)} **{label(f.key)}**"
+                            if f.status == "verified":
+                                src = S.sources[f.winner.source_id]
+                                line += (f": {f.value}  \n:gray[{trust(f.winner, src)} in "
+                                         f"{src.title.split('/')[-1]}: \"{f.winner.quote}\"]")
+                            else:
+                                who = S.policy["team_owner"].get(f.spec["owner"], f.spec["owner"])
+                                line += f", ask {who}  \n:gray[{f.reason}]"
+                            st.markdown(line)
     with tabs[1]:
         st.caption("Facts: questions that are settled, each with the statement that settles it.")
         shown = 0
