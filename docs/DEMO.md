@@ -20,21 +20,24 @@ Open **Monday briefing**. Both deals are on one screen.
   border transfers → inference location → model providers → fallback routing → residency
   requirement*. Only Acme can answer this, so the action is to ask Elena. Engineering is not asked to
   guess. Point out that the DPA is stuck behind subprocessors, which comes back to the same root.
-- **What's delaying.** Insurance **expired** Oct 1, 2026. The pen test is **stale**: Feb 2026, 275
+- **What's delaying.** Both are *out of date*: insurance **expired** Oct 1, 2026, and the pen test is **stale**: Feb 2026, 275
   days old against a 183-day policy. That 183 days comes from Jai saying a 6-month-old report won't
   work.
 - **Pre-filled questionnaire answers not to send.** Q-004 says "30 days?". Our best source for Acme
-  app logs says 14 days, and "30 days" matches the Meridian answer (another customer). Q-011 says
-  "24h / 24h?". Nothing of ours supports it, and it matches a prior customer's answer.
+  app logs says 14 days, and "30 days" matches the generic April platform doc (for Northstar it
+  matches BluePeak, another customer). Q-011 says "24h / 24h?". Nothing of ours supports it, and it
+  matches a prior customer's answer. These drafts are attached in code to the facts of the
+  requirement holding that row; no model call decides where they belong.
 - **37 blank controls.** Q-024–Q-060 are the same boilerplate with only the number changed. They are
   held as *no question text*. We never invent answers for them. The action is to ask Acme
   procurement for the real text.
 - **What moves things forward.** There is one batched message per person, ranked by how many
   requirements it unblocks, and each item includes our current best answer for them to confirm.
 
-## 2. Deal page: the five questions (2:30–3:30)
+## 2. Deal: the five questions (2:30–3:30)
 
-Open **Deal page → Acme**. The five tabs are the brief's five questions.
+Open **Deal → Acme**. The first five tabs are the brief's five questions. Requirement ids are
+stable labels from their first ask (Q-004, E-1a2b for an email ask, P-… for a predicted topic).
 
 1. **What's required.** Asks from questionnaire rows, Marcus's and Elena's emails and predicted
    topics, merged into one list. Open *Retention by data type*: it merges Q-004 and Elena's
@@ -45,26 +48,28 @@ Open **Deal page → Acme**. The five tabs are the brief's five questions.
 4. **What's blocking.** Root causes and their chains.
 5. **What to do next.** Ranked actions.
 
-## 3. Facts: why a value won (3:30–4:15)
+## 3. Fact detail: why a value won (3:30–4:15)
 
-Open **Facts → Acme retention app logs** (or storage location).
+Open **Deal → Acme → Fact detail → Acme retention app logs** (or storage location).
 
 - The value is "14 days". The best source is the deal document, a plan rather than proof it is
-  live, so the status is *needs confirmation* and Anthony is the owner.
-- Every source is listed with its trust tier. **Meridian's "30-day logs" shows as a hint and never
-  counts.** The generic April platform doc says 30 days as well, but a generic doc can never verify
-  a deal fact.
+  live, so the status is *unconfirmed* and Anthony is the owner.
+- Every source is listed with its trust tier (four tiers: evidence, owner confirmed, plan or chat,
+  hint). **The generic April platform doc and the "30 days?" questionnaire draft show as hints and
+  never count.** On Northstar, BluePeak's 30-day answer is a hint the same way.
 - "Trust tiers, recency and expiry are fixed rules in `config/policy.yaml`. The model only extracted
   the quotes."
 
 ## 4. Approvals: the 10-second check (4:15–5:15)
 
-Open **Approvals → Acme → Security assurance evidence** (SOC 2). Click **Draft and check an answer**.
+Open **Approvals → Acme → Q-007** (SOC 2), or click **Review answer** on the briefing. Click
+**Draft and check an answer**.
 
 - Each sentence cites a claim. A sentence with no source becomes *Pending: owner X* and is never
   presented as fact.
-- The checker flags uncited sentences, stale proof, other-customer sources, and plans not confirmed
-  live.
+- The checker is code: it flags uncited sentences, sentences that state an unverified fact, and
+  citations of hints (another customer, a generic doc, a questionnaire draft). Any error turns
+  approval off. The cited quote sits under each sentence, so Jai checks support by reading.
 - The draft says the 2025 report is final and the 2026 audit is not yet final. The caveat comes from
   the evidence itself.
 - Click **Approve and mark as sent to Acme National Bank**. The ledger now holds this exact version,
@@ -76,8 +81,8 @@ Open **Approvals → Acme → Security assurance evidence** (SOC 2). Click **Dra
 Open **Add input**. Add the demo inputs **in order** with **Add and rebuild**, and read each **What
 changed** banner aloud.
 
-1. **Acme questionnaire, round 2.** Open **Rounds**. Q-009 is a **repeat**. Q-004 is a **repeat
-   with an addition** (deletion requests). Q-007 and Q-021 **changed** (2026 report, expired
+1. **Acme questionnaire, round 2.** Open **Deal → Acme → Rounds**. Q-009 is a **repeat**. Q-004 is
+   a **repeat with changes** (deletion requests). So are Q-007 and Q-021 (2026 report, expired
    certificate). **Q-012 is a reused number**: round 1 Q-012 was model providers, and round 2
    Q-012 is AI monitoring, so it is matched by meaning and flagged. Q-062 (business continuity)
    was **predicted** from the guidance doc and is now actually asked.
@@ -98,7 +103,7 @@ changed** banner aloud.
 
 ## 6. Northstar, and a new customer (8:30–9:15)
 
-- Switch **Deal page → Northstar**. It runs on the same code and catalog with different asks: tool
+- Switch **Deal → Northstar**. It runs on the same code and catalog with different asks: tool
   authorization, employee-data scope, Records Management "may be triggered" (kept as undecided and
   customer-owned), a **Nov 16 launch** and **AI Governance meeting on Wednesdays** on the timeline.
   BluePeak's answers are hints there, just as Meridian's are for Acme.
@@ -109,8 +114,8 @@ changed** banner aloud.
 
 ## 7. Close (9:15–10:00)
 
-"The model reads and drafts. Rules decide. Jai approves. Run `python -m evals.run` and it scores 35
-of 36 hand-written checks. The one failure is a real rule gap, and I left it visible on purpose."
+"The model reads and drafts. Rules decide. Jai approves. Run `python -m evals.run` and it passes all 36
+hand-written checks."
 
 ---
 
@@ -124,10 +129,10 @@ are real and that ids exist.
 
 **How do you know it works?** `evals/run.py` builds the state and checks it against an answer key I
 wrote by hand from the case, not from the output. It covers 36 checks across traps, evidence age,
-root causes, requirements discovery, round-2 matching per question, and the six-input story. One
-check fails: an evidence file that says "two Mediums open, no remediation evidence" currently
-verifies the remediation fact. I kept that check rather than weakening it. There are also unit
-tests for the rules.
+root causes, requirements discovery, round-2 matching per question, and the six-input story. All
+36 pass, including the one that used to fail: Vanta shows the pen-test findings open while Anthony
+says they were fixed, so the remediation fact is *conflicting* (get updated evidence), not verified.
+There are also unit tests for the rules.
 
 **Cost and latency?** All model calls for this case, including iterations, cost about $0.50 on
 OpenRouter. A cached rebuild is effectively instant. A new email costs one extraction plus a
@@ -137,10 +142,8 @@ are never sent again.
 **What breaks first at scale?** The full rebuild and the single merge prompt per deal: with hundreds
 of questions, the merge gets long and less stable. Next is the hand-maintained catalog, and then
 value comparison, which is token match plus a label with no notion of units. The fixes are
-incremental resolution, chunked merging with stable requirement ids, and catalog suggestions from
-unmapped asks.
+incremental resolution, chunked merging, and catalog suggestions from unmapped asks.
 
 **What would you build next?** Real connectors: Vanta first because it carries the most trust, then
-Slack and email. Stable requirement ids across rebuilds. Answer reuse across customers when facts
-match. Auth and a signed ledger. A "suggest a new catalog fact" flow for unmapped asks. Fixing the
-remediation rule so evidence of an open finding cannot verify that it was fixed.
+Slack and email. Answer reuse across customers when facts match. Auth and a signed ledger. A
+"suggest a new catalog fact" flow for unmapped asks.

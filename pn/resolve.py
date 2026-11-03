@@ -1,17 +1,16 @@
 """Fixed rules: decide each fact's current value and status from its claims.
 
-No model call decides anything here. The only model help is `compare`, which labels whether two
-claims about the same fact agree; the rules then act on that label.
+No model call decides anything here. The only model help is `compare_pairs`, which labels whether
+two claims about the same fact agree; the rules then act on that label.
 
 Status meanings (what Jai should do about it):
-  verified            settled by the right kind of proof; safe to use in an answer
-  needs_confirmation  we have a value, but only from a plan, chat or generic doc: ask the owner
-  needs_proof         the fact needs a document in the evidence store and we only have talk
-  conflicting         sources at a usable trust level disagree
-  undecided           someone still has to make a choice
-  stale               evidence exists but is older than the policy allows
-  expired             evidence exists but its stated expiry date has passed
-  unknown             nothing usable says anything
+  verified     settled by the proof its catalog `proof` type needs; safe to use in an answer
+  unconfirmed  we have a value, but not that proof (owner has not confirmed, no document, the
+               customer has not said)
+  conflicting  sources at a usable trust level disagree
+  undecided    someone still has to make a choice
+  out_of_date  the proof is stale (older than max_age_days) or expired (past its stated expiry)
+  unknown      nothing usable says anything (hints may exist, but they never count)
 """
 
 from __future__ import annotations
@@ -21,11 +20,10 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 
 from . import llm
-from .llm import STR, arr, enum, obj
+from .llm import STR, enum, obj
 from .models import Claim, Fact, Source
 
-TIER_NAMES = {1: "evidence / customer statement", 2: "owner confirmation", 3: "deal document",
-              4: "internal chat", 5: "generic doc or questionnaire draft", 9: "other customer"}
+HINT = 4   # tier of generic docs, questionnaire drafts and other customers' answers
 
 
 # ---------- trust tiers ----------
@@ -33,44 +31,42 @@ TIER_NAMES = {1: "evidence / customer statement", 2: "owner confirmation", 3: "d
 def assign_tier(c: Claim, src: Source, spec: dict, policy: dict) -> None:
     t = policy["tiers"]
     # for recency only: a document is at least as recent as the latest date it mentions
-    c.eff_date = c.as_of_date or src.date or getattr(src, "inferred_date", None)  # type: ignore[attr-defined]
+    c.eff_date = c.as_of_date or src.date or src.inferred_date
     owner_person = policy["team_owner"].get(spec["owner"], "")
     speaker = (c.speaker or "").strip().lower()
     is_owner = bool(speaker) and speaker in {owner_person.lower(), spec["owner"].lower()}
-    side = getattr(c, "speaker_side", "unknown")
 
     if c.applies_to == "other_customer":
-        c.tier, c.tier_reason = t["other_customer"], "another customer's answer (a hint, never the answer)"
+        c.tier, c.tier_reason = t["hint"], "another customer's answer (a hint, never the answer)"
     elif c.assertion == "questionnaire_draft":
-        c.tier, c.tier_reason = t["questionnaire_draft"], "a draft typed into the questionnaire (origin unknown)"
+        c.tier, c.tier_reason = t["hint"], "a questionnaire draft answer (origin unknown, a hint)"
     elif src.system == "vanta" and c.assertion == "evidence":
         c.tier, c.tier_reason = t["evidence"], "the evidence store (mock Vanta)"
     elif spec["proof"] == "customer":
-        if side == "customer":
-            c.tier, c.tier_reason = t["customer_statement"], "the customer's own statement"
+        if c.speaker_side == "customer":
+            c.tier, c.tier_reason = t["evidence"], "the customer's own statement"
         else:
-            c.tier, c.tier_reason = t["internal_chat"], "our own guess about the customer's position"
+            c.tier, c.tier_reason = t["plan_or_chat"], "our own guess about the customer's position"
     elif c.applies_to == "generic_platform":
-        c.tier, c.tier_reason = t["generic_document"], "a generic product doc (not this customer)"
-    elif src.system in ("slack", "notes", "email"):
-        if is_owner and c.assertion == "stated":
-            c.tier, c.tier_reason = t["owner_confirmation"], f"the owner ({spec['owner']}) stating it"
-        else:
-            c.tier, c.tier_reason = t["internal_chat"], "internal chat (not the owner, or not stated as settled)"
+        c.tier, c.tier_reason = t["hint"], "a generic product doc (a hint, not this customer)"
+    elif src.system in ("slack", "notes", "email") and is_owner and c.assertion == "stated":
+        c.tier, c.tier_reason = t["owner_confirmed"], f"the owner ({spec['owner']}) stating it"
     elif src.system == "drive":
-        c.tier, c.tier_reason = t["deal_document"], "a document for this deal (a plan, not proof it is live)"
+        c.tier, c.tier_reason = t["plan_or_chat"], "a document for this deal (a plan, not proof it is live)"
     else:
-        c.tier, c.tier_reason = t["internal_chat"], src.system
+        c.tier, c.tier_reason = t["plan_or_chat"], "internal chat (not the owner, or not stated as settled)"
 
 
 # ---------- comparing two claims ----------
 
 _WORDS = re.compile(r"[a-z0-9]+")
 _STOP = {"and", "the", "a", "of", "for", "plus", "is", "are", "with"}
+_NUM = dict(zip("123456789", "one two three four five six seven eight nine".split()))
 
 
-def _tokens(v: str) -> frozenset:
-    return frozenset(w.rstrip("s") for w in _WORDS.findall(v.lower()) if w not in _STOP)
+def tokens(v: str) -> frozenset:
+    """Content words, singular, small numbers spelled out: "2 findings" == "two finding"."""
+    return frozenset(_NUM.get(w, w).rstrip("s") for w in _WORDS.findall(v.lower()) if w not in _STOP)
 
 
 COMPARE_SYSTEM = """You compare pairs of statements about the same procurement fact.
@@ -82,17 +78,17 @@ For each pair answer:
 Judge only the values; ignore who said it."""
 
 COMPARE_VERSION = "compare-v1"
+AGREE = ("agree", "adds_detail")
 
 
 def compare_pairs(pairs: list[tuple[str, Claim, Claim]], offline=False) -> dict[tuple, str]:
     """Label each (fact question, a, b). Identical values agree without a model call."""
     out, todo = {}, []
     for q, a, b in pairs:
-        k = (a.id, b.id)
-        if k in out:
+        if (a.id, b.id) in out:
             continue
-        if _tokens(a.value) == _tokens(b.value):
-            out[k] = "agree"
+        if tokens(a.value) == tokens(b.value):
+            out[(a.id, b.id)] = "agree"
         else:
             todo.append((q, a, b))
     schema = obj(label=enum("agree", "adds_detail", "conflicts", "different_aspect"), why=STR)
@@ -112,138 +108,131 @@ def compare_pairs(pairs: list[tuple[str, Claim, Claim]], offline=False) -> dict[
     return out
 
 
+def pairs_needed(claims: list[Claim]) -> list[tuple[Claim, Claim]]:
+    """Every pair the rules might ask about: the best claim vs the others, drafts vs everything."""
+    usable = sorted([c for c in claims if c.tier < HINT], key=_order)
+    out = [(usable[0], c) for c in usable[1:]] if usable else []
+    for d in (c for c in claims if c.assertion == "questionnaire_draft"):
+        if usable:
+            out.append((usable[0], d))
+        out += [(d, h) for h in claims if h.tier == HINT and h.assertion != "questionnaire_draft"]
+    return out
+
+
 # ---------- resolving one fact ----------
 
-def _eff(c: Claim) -> date | None:
-    return getattr(c, "eff_date", None) or c.as_of_date
-
-
 def _order(c: Claim):
-    d = _eff(c) or date.min
-    return (c.tier, -d.toordinal())
+    return (c.tier, -(c.eff_date or date.min).toordinal())
 
 
 def superseded(c: Claim, w: Claim, as_of: date) -> bool:
-    """An older or expired claim that the winner replaces is not a conflict.
-    Expired means valid_until is before as_of, the same rule resolve_fact uses."""
+    """An older or expired claim that the winner replaces is not a conflict."""
     if c.valid_until and c.valid_until < as_of and not (w.valid_until and w.valid_until < as_of):
         return True
-    cd, wd = _eff(c), _eff(w)
-    return cd is not None and wd is not None and cd < wd
+    return c.eff_date is not None and w.eff_date is not None and c.eff_date < w.eff_date
 
 
-def resolve_fact(f: Fact, claims: list[Claim], as_of: date, policy: dict,
-                 labels: dict[tuple, str], gaps: list[dict]) -> Fact:
+def _conflict(f: Fact, w: Claim, others: list[Claim], labels: dict, as_of: date) -> str | None:
+    """Reason text if a usable claim disagrees with the winner, else None."""
+    for c in others:
+        if c.assertion == "undecided" or superseded(c, w, as_of):
+            continue
+        label = labels.get((w.id, c.id))
+        if label == "conflicts":
+            return f"Sources disagree: \"{w.value}\" ({w.tier_reason}) vs \"{c.value}\" ({c.tier_reason})."
+        # The owner saying more than the evidence shows ("findings fixed" while the Vanta file says
+        # they are open, "2026 report final" while Vanta has 2025) must not let the evidence on
+        # file verify the fact. The model labels such pairs "adds_detail", so code checks the
+        # words: does the owner's value say anything the winning evidence does not?
+        if (f.spec["proof"] == "document" and w.tier == 1 and c.tier == 2 and label != "agree"
+                and tokens(c.value) - tokens(f"{w.value} {w.quote}")):
+            return (f"The owner says \"{c.value}\"; the evidence on file says \"{w.value}\". "
+                    f"Get updated evidence.")
+    return None
+
+
+def resolve_fact(f: Fact, claims: list[Claim], as_of: date, labels: dict[tuple, str],
+                 warning_days: int = 45) -> Fact:
     spec = f.spec
-    f.hints = [c for c in claims if c.tier >= 9]
-    drafts = [c for c in claims if c.assertion == "questionnaire_draft"]
-    usable = sorted([c for c in claims if c.tier < 9 and c.assertion != "questionnaire_draft"],
-                    key=_order)
-    f.claims = usable + drafts
-    for g in gaps:
-        f.warnings.append(f"Source says: {g['note']}")
+    f.hints = [c for c in claims if c.tier >= HINT]
+    usable = sorted([c for c in claims if c.tier < HINT], key=_order)
+    f.claims = usable
 
     if not usable:
-        f.status = "unknown"
-        f.reason = "Nothing usable says anything about this."
-        if f.hints:
-            f.reason += f" Another customer's answer exists ({f.hints[0].value}) but it is not evidence for this deal."
-        if drafts:
-            f.reason += f" A questionnaire draft says \"{drafts[0].value}\" with no source behind it."
+        f.status, f.reason = "unknown", "Nothing usable says anything about this."
+        for h in f.hints[:3]:
+            f.reason += f" {h.tier_reason.split(' (')[0].capitalize()} says \"{h.value}\", which does not count."
         return f
 
     w = usable[0]
     f.winner, f.value = w, w.value
     undecided = [c for c in usable if c.assertion == "undecided"]
-    conflicts = [c for c in usable[1:] if c.tier <= 4 and c.assertion != "undecided"
-                 and labels.get((w.id, c.id)) == "conflicts" and not superseded(c, w, as_of)]
     settled = w.tier <= 2 and w.assertion in ("evidence", "stated")
 
-    if (w.assertion == "undecided" or undecided) and not settled:
-        u = undecided[0] if undecided else w
+    if undecided and not settled:
+        u = undecided[0]
         f.status = "undecided"
         f.reason = f"Not decided yet: \"{u.quote}\" ({u.speaker or 'source'})."
-        if w.assertion != "undecided":
+        if w is not u:
             f.reason += f" A plan says \"{w.value}\" but a plan does not settle an open decision."
         return f
 
-    if conflicts:
-        c = conflicts[0]
-        f.status = "conflicting"
-        f.reason = (f"Sources disagree: \"{w.value}\" ({w.tier_reason}) vs \"{c.value}\" "
-                    f"({c.tier_reason}).")
+    conflict = _conflict(f, w, usable[1:], labels, as_of)
+    if conflict:
+        f.status, f.reason = "conflicting", conflict
         return f
 
-    if spec["proof"] == "document":
-        if w.tier != 1:
-            f.status = "needs_proof"
-            f.reason = f"Only {w.tier_reason} supports it. This needs a document in the evidence store."
-            return f
-    elif spec["proof"] == "customer":
-        if w.tier != 1:
-            f.status = "unknown"
-            f.reason = "Only our own guess; the customer has not said."
-            return f
-    elif w.tier > 2:
-        f.status = "needs_confirmation"
-        f.reason = f"Best source is {w.tier_reason}; the owner ({spec['owner']}) has not confirmed it."
+    # the proof the catalog asks for: a document, the owner, or the customer
+    need = {"document": 1, "customer": 1}.get(spec["proof"], 2)
+    if w.tier > need:
+        f.status = "unconfirmed"
+        f.reason = {"document": f"Only {w.tier_reason} supports it. This needs a document in the evidence store.",
+                    "customer": "Only our own guess; the customer has not said."}.get(
+            spec["proof"], f"Best source is {w.tier_reason}; the owner ({spec['owner']}) has not confirmed it.")
         return f
 
     # settled by the right kind of proof: check it is still fresh
     f.status, f.reason = "verified", f"Settled by {w.tier_reason}."
     max_age = spec.get("max_age_days")
     if w.valid_until and w.valid_until < as_of:
-        f.status = "expired"
-        f.reason = f"Expired on {w.valid_until:%b %d, %Y}."
+        f.status, f.reason = "out_of_date", f"Expired on {w.valid_until:%b %d, %Y}."
     elif max_age and w.as_of_date and (as_of - w.as_of_date).days > max_age:
-        f.status = "stale"
-        f.reason = (f"Dated {w.as_of_date:%b %Y}, {(as_of - w.as_of_date).days} days old; "
+        f.status = "out_of_date"
+        f.reason = (f"Stale: dated {w.as_of_date:%b %Y}, {(as_of - w.as_of_date).days} days old; "
                     f"policy allows {max_age}.")
     else:
         if max_age and not w.as_of_date and not w.valid_until:
             # no date at all: we cannot tell whether it is fresh, so say so instead of passing silently
             f.warnings.append(f"No date on the proof; cannot check it is within {max_age} days.")
         end = w.valid_until or (w.as_of_date + timedelta(days=max_age) if max_age and w.as_of_date else None)
-        if end and (end - as_of).days <= policy.get("expiry_warning_days", 45):
+        if end and (end - as_of).days <= warning_days:
             f.warnings.append(f"Expires {end:%b %d, %Y}; start renewal now.")
     if w.note:
         f.warnings.append(w.note)
+    # equally trusted, compatible detail is a caveat Jai must see ("2026 audit not yet final")
+    f.warnings += [f"Also on file: {c.value}" for c in usable[1:] if c.tier == w.tier
+                   and labels.get((w.id, c.id)) == "adds_detail" and not superseded(c, w, as_of)]
     return f
 
 
 def draft_flags(f: Fact, labels: dict[tuple, str], sources: dict[str, Source]) -> list[str]:
     """Questionnaire drafts that disagree with the settled value, and where they likely came from."""
     flags = []
-    for d in (c for c in f.claims if c.assertion == "questionnaire_draft"):
-        if f.winner and labels.get((f.winner.id, d.id)) in ("agree", "adds_detail"):
-            continue
-        origin = [c for c in f.hints + [c for c in f.claims if c.tier == 5 and c is not d]
-                  if labels.get((d.id, c.id)) in ("agree", "adds_detail")]
+    for d in (h for h in f.hints if h.assertion == "questionnaire_draft"):
+        if f.winner and labels.get((f.winner.id, d.id)) in AGREE + ("different_aspect",):
+            continue   # agrees, or the draft is about another fact of the same question
+        origin = sorted((h for h in f.hints if h.assertion != "questionnaire_draft"
+                         and labels.get((d.id, h.id)) in AGREE),
+                        key=lambda h: h.applies_to != "other_customer")   # copied from a customer first
         msg = f"[{d.deal}] questionnaire draft \"{d.quote}\" "
-        if f.winner:
-            msg += f"disagrees with the best source (\"{f.value}\")"
-        else:
-            msg += "has nothing behind it"
+        msg += f"disagrees with the best source (\"{f.value}\")" if f.winner else "has nothing behind it"
         if origin:
-            o = origin[0]
-            msg += f"; it matches {sources[o.source_id].title} ({o.tier_reason})"
+            msg += f"; it matches {sources[origin[0].source_id].title} ({origin[0].tier_reason})"
         flags.append(msg + ".")
     return flags
 
 
-def pairs_needed(claims: list[Claim]) -> list[tuple[Claim, Claim]]:
-    """Every pair the rules might ask about: best claim vs the others, drafts vs everything."""
-    usable = sorted([c for c in claims if c.tier < 9 and c.assertion != "questionnaire_draft"], key=_order)
-    out = []
-    if usable:
-        out += [(usable[0], c) for c in usable[1:] if c.tier <= 4]
-    for d in (c for c in claims if c.assertion == "questionnaire_draft"):
-        if usable:
-            out.append((usable[0], d))
-        out += [(d, c) for c in claims if (c.tier >= 9 or c.tier == 5) and c is not d
-                and c.assertion != "questionnaire_draft"]
-    return out
-
+# ---------- dependencies ----------
 
 def dep_keys(key: str, facts: dict[str, Fact]) -> list[str]:
     """Fact keys that `key` depends on. A dependency on a company-level fact points at the one

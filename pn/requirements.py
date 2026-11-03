@@ -2,17 +2,20 @@
 
 Round 1: every ask (questionnaire rows, sentences in customer emails, predicted topics) is grouped
 into requirements, each linked to the catalog facts it needs.
-Round 2+: each new question is labelled repeat / repeat_with_addition / changed / new against the
-existing requirements. Code rejects any requirement id or fact key the model was not shown, and
-flags a reused question number that now asks something different.
+Round 2+: each new question is labelled repeat / repeat_with_changes / new against the existing
+requirements. Code rejects any requirement or fact the model was not shown, and flags a reused
+question number that now asks something different.
+
+Requirement ids come from the requirement's first ask, not from its position in a list, so they do
+not shift when a new email or round adds asks (the ledger keys sent answers by requirement id).
 """
 
 from __future__ import annotations
 
-import json
+import hashlib
 
 from . import llm
-from .llm import BOOL, NSTR, STR, arr, enum, obj
+from .llm import BOOL, STR, arr, enum, obj
 from .models import Ask, Requirement
 
 VERSION = "req-v3"
@@ -35,12 +38,12 @@ For each requirement give:
 
 MATCH_SYSTEM = """A customer sent a new questionnaire round. Match each new question to the existing requirements.
 relation:
-  repeat               = asks the same thing as an existing requirement, nothing new
-  repeat_with_addition = the same underlying need plus an extra part; put only the extra part in added_part
-  changed              = the same topic but the ask itself changed (scope, period, format); describe the change in added_part
-  new                  = not covered by any existing requirement
+  repeat              = asks the same thing as an existing requirement, nothing new
+  repeat_with_changes = the same underlying need, but with an extra part or a changed scope, period or format;
+                        say only what is new or changed in added_part
+  new                 = not covered by any existing requirement
 Question numbers are NOT reliable: the same number can be reused for a different question. Match on meaning only.
-requirement_id: the matched requirement id, or "none" for new.
+requirement: the matched requirement's label (e.g. "#3"), or "none" for new.
 facts: catalog facts needed for the new or added part (empty for a plain repeat).
 title: a short title (3-7 words) for a new requirement, else empty string."""
 
@@ -75,87 +78,97 @@ def merge_round_one(deal: str, deal_name: str, asks: list[Ask], instructions: li
             id="", deal=deal, title=r["title"], track=r["track"], ask=r["ask"], ask_ids=members,
             facts=[k for k in dict.fromkeys(r["facts"]) if k in catalog["facts"]],
             reading=r["reading"],
-            status="predicted" if r["predicted_only"] else "umbrella" if r["umbrella"] else "open",
-            history=[{"round": by_id[m].round or 0, "qid": by_id[m].qid, "relation": "first seen",
-                      "ask_id": m, "added_part": ""} for m in members]))
+            status="predicted" if r["predicted_only"] else "umbrella" if r["umbrella"] else "open"))
     for a in asks:  # code guarantees every ask lands somewhere
         if a.id not in used:
             reqs.append(Requirement(id="", deal=deal, title=a.text[:60], track=a.track or "Other",
-                                    ask=a.text, ask_ids=[a.id], facts=[],
-                                    history=[{"round": a.round or 0, "qid": a.qid,
-                                              "relation": "first seen", "ask_id": a.id,
-                                              "added_part": ""}]))
+                                    ask=a.text, ask_ids=[a.id], facts=[]))
     order = {a.id: i for i, a in enumerate(asks)}
-    reqs.sort(key=lambda r: min(order[i] for i in r.ask_ids))
-    for n, r in enumerate(reqs, 1):
-        r.id = f"{deal}:R-{n:02d}"
+    for r in reqs:
+        r.ask_ids.sort(key=order.get)
+    reqs.sort(key=lambda r: order[r.ask_ids[0]])
+    taken: set[str] = set()
+    for r in reqs:
+        r.id = stable_id(deal, by_id[r.ask_ids[0]], taken)
     return reqs
+
+
+def stable_id(deal: str, first: Ask, taken: set[str]) -> str:
+    """acme:Q-004 for a round 1 row, acme:R2-Q-012 for a later round, acme:E-1a2b for an email ask,
+    acme:P-3c4d for a predicted topic (a hash of the quote, so it survives rebuilds)."""
+    if first.origin == "questionnaire":
+        base = first.qid if (first.round or 1) == 1 else f"R{first.round}-{first.qid}"
+    else:
+        h = hashlib.sha256(first.quote.strip().lower().encode()).hexdigest()[:4]
+        base = f"{'P' if first.origin == 'predicted' else 'E'}-{h}"
+    rid, n = f"{deal}:{base}", 2
+    while rid in taken:   # two asks with the same quote: keep ids unique
+        rid, n = f"{deal}:{base}-{n}", n + 1
+    taken.add(rid)
+    return rid
 
 
 def match_round(deal: str, round_no: int, new_asks: list[Ask], reqs: list[Requirement],
                 all_asks: dict[str, Ask], catalog: dict, offline=False) -> list[dict]:
     """Return one match record per new question; also updates `reqs` in place."""
-    keys = list(catalog["facts"])
-    req_ids = [r.id for r in reqs]
+    # The model sees neutral labels (#1, #2...), not ids like acme:Q-012, so a reused question
+    # number cannot pull it towards the wrong requirement. The no-text bucket is never shown.
+    shown = [r for r in reqs if r.status != "missing_text"]
+    by_label = {f"#{n}": r for n, r in enumerate(shown, 1)}
     schema = obj(matches=arr(obj(
         ask_id=enum(*[a.id for a in new_asks]),
-        relation=enum("repeat", "repeat_with_addition", "changed", "new"),
-        requirement_id=enum(*(req_ids + ["none"])), added_part=STR,
-        facts=arr(enum(*keys)), title=STR)))
+        relation=enum("repeat", "repeat_with_changes", "new"),
+        requirement=enum(*by_label, "none"), added_part=STR,
+        facts=arr(enum(*catalog["facts"])), title=STR)))
     existing = []
-    for r in reqs:
-        if r.status == "missing_text":
-            continue
+    for lbl, r in by_label.items():
         qs = "; ".join(f"[{all_asks[i].qid or 'email'}] {all_asks[i].text}" for i in r.ask_ids
                        if i in all_asks)
-        existing.append(f"{r.id} | {r.title} | {r.ask} | asked as: {qs}")
+        existing.append(f"{lbl} | {r.title} | {r.ask} | asked as: {qs}")
     user = (f"Catalog facts:\n{_catalog_lines(catalog)}\n\nExisting requirements:\n" +
             "\n".join(existing) + f"\n\nRound {round_no} questions (ask id | number | text):\n" +
             "\n".join(f"{a.id} | {a.qid} | {a.text}" for a in new_asks))
     out = llm.call_json("match", VERSION, MATCH_SYSTEM, user, schema, offline=offline)
 
-    by_req = {r.id: r for r in reqs}
-    # the schema enum also lists the "no question text" bucket, but the model never saw it
-    shown = {r.id for r in reqs if r.status != "missing_text"}
     earlier_qids = {all_asks[i].qid: all_asks[i] for r in reqs for i in r.ask_ids
                     if i in all_asks and all_asks[i].qid}
-    results, seen = [], set()
+    taken = {r.id for r in reqs}
+    by_ask = {a.id: a for a in new_asks}
+    results = []
     for m in out["matches"]:
-        if m["ask_id"] in seen:
+        a = by_ask.pop(m["ask_id"], None)
+        if a is None:   # the model listed the same question twice
             continue
-        seen.add(m["ask_id"])
-        a = next(x for x in new_asks if x.id == m["ask_id"])
-        rel, rid = m["relation"], m["requirement_id"]
-        if rel != "new" and rid not in shown:   # model named a requirement it was not shown
-            rel, rid = "new", "none"
+        r = by_label.get(m["requirement"])
+        rel = m["relation"] if r else "new"   # "repeat" of nothing, or of an unknown label, is new
         facts = [k for k in m["facts"] if k in catalog["facts"]]
-        reused = None
-        prev = earlier_qids.get(a.qid)
-        if prev and (rel == "new" or (rid in by_req and prev.id not in by_req[rid].ask_ids)):
-            reused = f"Number {a.qid} was used in an earlier round for a different question: \"{prev.text}\""
         if rel == "new":
-            r = Requirement(id=f"{deal}:R-{len(reqs) + 1:02d}", deal=deal,
-                            title=m["title"] or a.text[:60], track=a.track or "Other", ask=a.text,
-                            ask_ids=[a.id], facts=facts)
-            reqs.append(r)
-            by_req[r.id] = r
-            rid = r.id
+            r = _new_requirement(deal, a, m["title"], facts, reqs, taken)
         else:
-            r = by_req[rid]
             if r.status == "predicted":   # we expected this topic; now they have asked
                 r.status = "open"
             r.ask_ids.append(a.id)
             r.facts += [k for k in facts if k not in r.facts]
-        entry = {"round": round_no, "qid": a.qid, "relation": rel, "ask_id": a.id,
-                 "added_part": m["added_part"], "reused_number": reused}
-        r.history.append(entry)
-        results.append({**entry, "requirement_id": rid, "question": a.text})
-    for a in new_asks:   # anything the model skipped becomes its own requirement
-        if a.id not in seen:
-            r = Requirement(id=f"{deal}:R-{len(reqs) + 1:02d}", deal=deal, title=a.text[:60],
-                            track=a.track or "Other", ask=a.text, ask_ids=[a.id], facts=[])
-            r.history.append({"round": round_no, "qid": a.qid, "relation": "new", "ask_id": a.id,
-                              "added_part": "", "reused_number": None})
-            reqs.append(r)
-            results.append({**r.history[-1], "requirement_id": r.id, "question": a.text})
+        results.append(_record(r, a, rel, m["added_part"], earlier_qids.get(a.qid)))
+    for a in by_ask.values():   # anything the model skipped becomes its own requirement
+        r = _new_requirement(deal, a, "", [], reqs, taken)
+        results.append(_record(r, a, "new", "", earlier_qids.get(a.qid)))
     return results
+
+
+def _new_requirement(deal, a: Ask, title: str, facts: list[str], reqs: list, taken: set) -> Requirement:
+    r = Requirement(id=stable_id(deal, a, taken), deal=deal, title=title or a.text[:60],
+                    track=a.track or "Other", ask=a.text, ask_ids=[a.id], facts=facts)
+    reqs.append(r)
+    return r
+
+
+def _record(r: Requirement, a: Ask, rel: str, added: str, prev: Ask | None) -> dict:
+    """One round-diff line. A question number seen earlier on a different requirement is flagged."""
+    reused = None
+    if prev and prev.id not in r.ask_ids:
+        reused = f"Number {a.qid} was used in an earlier round for a different question: \"{prev.text}\""
+    entry = {"round": a.round, "qid": a.qid, "relation": rel, "ask_id": a.id,
+             "added_part": added, "reused_number": reused}
+    r.history.append(entry)
+    return {**entry, "requirement_id": r.id, "question": a.text}

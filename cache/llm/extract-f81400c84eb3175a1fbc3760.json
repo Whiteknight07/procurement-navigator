@@ -1,0 +1,92 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1917,
+  "completion_tokens": 501,
+  "total_tokens": 2418,
+  "cost": 0.0035181,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 762,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0035181,
+   "upstream_inference_prompt_cost": 0.0010131,
+   "upstream_inference_completions_cost": 0.002505
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 150,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "App logs are 14 days.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-04",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "retention_traces",
+    "value": "Payload capture off",
+    "quote": "Observability payload capture is off for Acme.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-04",
+    "valid_until": null,
+    "note": "Trace retention period not stated."
+   },
+   {
+    "fact": "storage_location",
+    "value": "AWS ca-central-1",
+    "quote": "Storage is AWS ca-central-1.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-04",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic fallback disabled",
+    "quote": "Anthropic fallback is disabled for Acme",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-04",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "model_providers",
+    "value": "OpenAI",
+    "quote": "OpenAI is the only model provider.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-04",
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": []
+ }
+}

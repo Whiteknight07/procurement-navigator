@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 259,
+  "completion_tokens": 83,
+  "total_tokens": 342,
+  "cost": 0.000674,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000674,
+   "upstream_inference_prompt_cost": 0.000259,
+   "upstream_inference_completions_cost": 0.000415
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 40,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "conflicts",
+  "why": "The statements identify different audit periods for the current report: Jan\u2013Sep 2026 versus Jan\u2013Dec 2025."
+ }
+}

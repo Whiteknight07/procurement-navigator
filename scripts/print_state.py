@@ -1,12 +1,12 @@
 import sys, time
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent.parent))
-from pn import engine, planner
+from pn import engine
 t = time.time()
 st = engine.build()
 print('build secs', round(time.time() - t, 1))
 print('errors', st.errors); print('dropped', st.dropped)
 for k, f in st.facts.items():
-    print(f"{k:42} {f.status:18} {str(f.value)[:45]:45} | {f.reason[:110]} {'| BLOCKED '+','.join(f.blocked_by) if f.blocked_by else ''}")
+    print(f"{k:42} {f.status:12} {str(f.value)[:45]:45} | {f.reason[:110]} {'| BLOCKED '+','.join(f.blocked_by) if f.blocked_by else ''}")
 print()
 for fl in st.draft_flags: print('FLAG', fl)
 for d, rs in st.reqs.items():

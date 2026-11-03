@@ -1,0 +1,160 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1932,
+  "completion_tokens": 693,
+  "total_tokens": 2625,
+  "cost": 0.00449685,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 777,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00449685,
+   "upstream_inference_prompt_cost": 0.00103185,
+   "upstream_inference_completions_cost": 0.003465
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 188,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [],
+  "asks": [
+   {
+    "text": "Provide security assurance.",
+    "quote": "assurance",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Provide penetration testing information.",
+    "quote": "pen testing",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe encryption controls.",
+    "quote": "encryption",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe identity and access management controls.",
+    "quote": "IAM",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe incident response.",
+    "quote": "incident response",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Provide business continuity and disaster recovery information.",
+    "quote": "BCP/DR",
+    "who": null,
+    "track": "Resilience",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe data flows.",
+    "quote": "data flows",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe the AI use case.",
+    "quote": "use case",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Identify models and providers.",
+    "quote": "models/providers",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe the data used.",
+    "quote": "data",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe human oversight.",
+    "quote": "human oversight",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI evaluations.",
+    "quote": "evaluations",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI limitations.",
+    "quote": "limitations",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI monitoring.",
+    "quote": "monitoring",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe tool and action controls.",
+    "quote": "tool/action controls",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI incidents.",
+    "quote": "incidents",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   }
+  ]
+ }
+}

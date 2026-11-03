@@ -1,0 +1,104 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1929,
+  "completion_tokens": 1140,
+  "total_tokens": 3069,
+  "cost": 0.0067281,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 774,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0067281,
+   "upstream_inference_prompt_cost": 0.0010281,
+   "upstream_inference_completions_cost": 0.0057
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 513,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "other",
+    "value": "Customer wants a November 2026 launch",
+    "quote": "customer wants November launch.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Launch timing is reported internally, not directly by the customer."
+   },
+   {
+    "fact": "storage_location",
+    "value": "AWS, Canada",
+    "quote": "AWS persistence is Canada",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "inference_location",
+    "value": "Separate from storage geography",
+    "quote": "model inference geography is separate.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Actual inference location is not stated."
+   },
+   {
+    "fact": "other",
+    "value": "Old subprocessor list is not approved for external use",
+    "quote": "old subprocessor list is not approved for external use.",
+    "speaker": "Legal",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "No current subprocessor list is provided."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Connector permissions are workspace-specific",
+    "quote": "connector permissions are workspace-specific.",
+    "speaker": "Dev",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "The pilot's specific permissions are not stated; the generic product can do more than the pilot."
+   },
+   {
+    "fact": "retention_traces",
+    "value": "Traces should redact payloads",
+    "quote": "traces should redact payloads, but verify actual deployment.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Actual deployment needs verification; trace retention is not stated."
+   }
+  ],
+  "asks": []
+ }
+}

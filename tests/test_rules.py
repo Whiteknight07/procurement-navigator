@@ -6,8 +6,8 @@ from datetime import date
 
 import pytest
 
-from pn import ledger, planner, resolve
-from pn.models import Claim, Fact, Source
+from pn import ledger, planner, requirements, resolve
+from pn.models import Ask, Claim, Fact, Source
 from pn.sources import load_yaml, parse_questionnaire
 
 AS_OF = date(2026, 11, 3)
@@ -34,32 +34,35 @@ def claim(value="14 days", *, system="slack", speaker=None, assertion="stated",
     _n += 1
     c = Claim(id=f"C-{_n}", source_id=f"s{_n}", deal="acme", fact="x", value=value, quote=value,
               speaker=speaker, applies_to=applies_to, assertion=assertion,
-              as_of_date=as_of_date, valid_until=valid_until)
-    c.speaker_side = side
+              as_of_date=as_of_date, valid_until=valid_until, speaker_side=side)
     resolve.assign_tier(c, src(system, f"s{_n}", d=src_date), sp or spec(), POLICY)
     return c
 
 
 def resolve_one(claims, sp=None, labels=None):
     f = Fact(key="acme.x", name="x", deal="acme", spec=sp or spec())
-    return resolve.resolve_fact(f, claims, AS_OF, POLICY, labels or {}, [])
+    return resolve.resolve_fact(f, claims, AS_OF, labels or {})
 
 
 # ---------- trust tiers ----------
 
 def test_tiers():
     t = POLICY["tiers"]
-    assert claim(system="vanta", assertion="evidence").tier == t["evidence"]
-    assert claim(speaker="Anthony").tier == t["owner_confirmation"]
-    assert claim(speaker="Anthony", assertion="planned").tier == t["internal_chat"]
-    assert claim(speaker="Parsa").tier == t["internal_chat"]
-    assert claim(system="drive").tier == t["deal_document"]
-    assert claim(system="drive", applies_to="generic_platform").tier == t["generic_document"]
-    assert claim(applies_to="other_customer", system="vanta", assertion="evidence").tier == t["other_customer"]
-    assert claim(assertion="questionnaire_draft", system="questionnaire").tier == t["questionnaire_draft"]
+    assert sorted(t.values()) == [1, 2, 3, 4]
+    assert claim(system="vanta", assertion="evidence").tier == 1
+    assert claim(speaker="Anthony").tier == 2
+    assert claim(speaker="Anthony", assertion="planned").tier == 3
+    assert claim(speaker="Parsa").tier == 3
+    assert claim(system="drive").tier == 3
+    generic = claim(system="drive", applies_to="generic_platform")
+    other = claim(applies_to="other_customer", system="vanta", assertion="evidence")
+    draft = claim(assertion="questionnaire_draft", system="questionnaire")
+    assert generic.tier == other.tier == draft.tier == 4
+    # the demo points at these labels
+    assert "another customer" in other.tier_reason and "questionnaire draft" in draft.tier_reason
     cust = spec(proof="customer", owner="Customer")
-    assert claim(system="email", side="customer", sp=cust).tier == t["customer_statement"]
-    assert claim(system="slack", side="supplier", sp=cust).tier == t["internal_chat"]
+    assert claim(system="email", side="customer", sp=cust).tier == 1
+    assert claim(system="slack", side="supplier", sp=cust).tier == 3
 
 
 # ---------- resolving one fact ----------
@@ -79,14 +82,17 @@ def test_questionnaire_draft_never_wins():
     assert f.status == "unknown" and f.winner is None and "questionnaire draft" in f.reason
     generic = claim("14 days", system="drive", applies_to="generic_platform")
     f = resolve_one([d, generic])
-    assert f.winner is generic and f.status == "needs_confirmation"
+    assert f.winner is None and f.status == "unknown" and "generic product doc" in f.reason
+    plan_doc = claim("14 days", system="drive")
+    f = resolve_one([d, generic, plan_doc])
+    assert f.winner is plan_doc and f.status == "unconfirmed" and len(f.hints) == 2
 
 
 def test_plan_doc_loses_to_owner_confirmation():
     plan_doc = claim("30 days", system="drive", as_of_date=date(2026, 10, 1))
     owner = claim("14 days", speaker="Anthony", as_of_date=date(2026, 9, 1))
-    f = resolve_one([plan_doc], )
-    assert f.status == "needs_confirmation"
+    f = resolve_one([plan_doc])
+    assert f.status == "unconfirmed"
     f = resolve_one([plan_doc, owner])
     assert f.winner is owner and f.status == "verified"
 
@@ -105,7 +111,7 @@ def test_document_proof_needs_evidence():
     sp = spec(proof="document")
     owner = claim("SOC 2 2025 final", speaker="Anthony", sp=sp)
     f = resolve_one([owner], sp)
-    assert f.status == "needs_proof" and f.value == "SOC 2 2025 final"
+    assert f.status == "unconfirmed" and "evidence store" in f.reason and f.value == "SOC 2 2025 final"
     ev = claim("SOC 2 2025 final", system="vanta", assertion="evidence", sp=sp,
                as_of_date=date(2025, 12, 31))
     assert resolve_one([owner, ev], sp, {(ev.id, owner.id): "agree"}).status == "verified"
@@ -116,7 +122,7 @@ def test_stale_by_max_age():
     old = claim("pen test Feb 2026", system="vanta", assertion="evidence", sp=sp,
                 as_of_date=date(2026, 2, 1))
     f = resolve_one([old], sp)
-    assert f.status == "stale" and "policy allows 183" in f.reason
+    assert f.status == "out_of_date" and f.reason.startswith("Stale") and "policy allows 183" in f.reason
     fresh = claim("pen test Oct 2026", system="vanta", assertion="evidence", sp=sp,
                   as_of_date=date(2026, 10, 1))
     assert resolve_one([fresh], sp).status == "verified"
@@ -133,7 +139,7 @@ def test_expired_by_valid_until_and_expiry_warning():
     sp = spec(proof="document")
     cert = claim("CAD 5M", system="vanta", assertion="evidence", sp=sp, valid_until=date(2026, 10, 1))
     f = resolve_one([cert], sp)
-    assert f.status == "expired" and "Oct 01, 2026" in f.reason
+    assert f.status == "out_of_date" and f.reason == "Expired on Oct 01, 2026."
     soon = claim("CAD 5M", system="vanta", assertion="evidence", sp=sp, valid_until=date(2026, 12, 1))
     f = resolve_one([soon], sp)
     assert f.status == "verified" and any("start renewal" in w for w in f.warnings)
@@ -166,10 +172,29 @@ def test_real_conflict_between_owner_and_evidence():
     assert resolve_one([ev, chat], sp, {(ev.id, chat.id): "agree"}).status == "verified"
 
 
+def test_owner_disagreeing_with_evidence_blocks_verification():
+    # Vanta says the pen-test findings are open; the owner says (undated, so not older) they were
+    # fixed. The old evidence must not verify the fact: get updated evidence.
+    sp = spec(proof="document")
+    ev = claim("Two Medium findings open", system="vanta", assertion="evidence", sp=sp,
+               as_of_date=date(2026, 2, 1))
+    fixed = claim("findings remediated later", speaker="Anthony", sp=sp)
+    f = resolve_one([ev, fixed], sp, {(ev.id, fixed.id): "different_aspect"})
+    assert f.status == "conflicting" and "updated evidence" in f.reason
+    # an older owner statement is replaced by newer evidence, and not-the-owner chat does not count
+    old = claim("findings open", speaker="Anthony", sp=sp, as_of_date=date(2026, 1, 1))
+    assert resolve_one([ev, old], sp, {(ev.id, old.id): "different_aspect"}).status == "verified"
+    chat = claim("findings remediated", speaker="Parsa", sp=sp)
+    assert resolve_one([ev, chat], sp, {(ev.id, chat.id): "different_aspect"}).status == "verified"
+    # the owner restating what the evidence says, in fewer words, is fine
+    same = claim("2 medium findings", speaker="Anthony", sp=sp)
+    assert resolve_one([ev, same], sp, {(ev.id, same.id): "adds_detail"}).status == "verified"
+
+
 def test_customer_proof_needs_the_customer():
     sp = spec(proof="customer", owner="Customer")
     guess = claim("in-country", speaker="Jai", sp=sp)
-    assert resolve_one([guess], sp).status == "unknown"
+    assert resolve_one([guess], sp).status == "unconfirmed"
     said = claim("in-country", system="email", side="customer", speaker="Elena", sp=sp)
     assert resolve_one([guess, said], sp).status == "verified"
 
@@ -259,8 +284,7 @@ def test_template_rows_are_detected():
     assert [a.qid for a in asks if a.template] == ["Q-010", "Q-011", "Q-012", "Q-013"]
     assert [a.qid for a in asks if not a.template] == ["Q-001", "Q-002"]
     assert asks[0].id == "acme:R1:Q-001"
-    assert drafts == [{"ask_id": "acme:R1:Q-001", "qid": "Q-001", "question": "Where is data stored?",
-                       "draft_answer": "AWS", "note": ""}]
+    assert drafts == [{"ask_id": "acme:R1:Q-001", "qid": "Q-001", "draft_answer": "AWS", "note": ""}]
 
 
 def test_two_similar_rows_are_not_a_template():
@@ -289,7 +313,7 @@ def test_ledger_round_trip(tmp_path):
 @pytest.mark.parametrize("key,expected", [("company.pen_test", "pen test"),
                                           ("acme.retention_app_logs", "Acme retention app logs")])
 def test_label(key, expected):
-    assert planner.label(key, {}) == expected
+    assert planner.label(key) == expected
 
 
 # ---------- planner.plan on a hand-built state ----------
@@ -326,10 +350,10 @@ def test_plan_frontier_waits_and_updates():
         {"type": "sent", "deal": "acme", "req": "acme:R-03",
          "facts": {"company.soc2": {"value": "old soc2", "status": "verified"}}, "date": "2026-10-20"},
     ]
-    st = _state(cat, {"residency": "unknown", "fallback": "needs_confirmation", "storage": "needs_confirmation",
-                      "loop_a": "needs_confirmation", "loop_b": "needs_confirmation",
-                      "inference": "needs_confirmation", "subprocessors": "needs_confirmation",
-                      "cross_border": "needs_confirmation"},
+    st = _state(cat, {"residency": "unknown", "fallback": "unconfirmed", "storage": "unconfirmed",
+                      "loop_a": "unconfirmed", "loop_b": "unconfirmed",
+                      "inference": "unconfirmed", "subprocessors": "unconfirmed",
+                      "cross_border": "unconfirmed"},
                 [["fallback"], ["storage"], ["soc2"], ["loop_a"], ["cross_border"]], ledger_entries)
     p = planner.plan(st)
     by_fact = {k: a for a in p["actions"] for k in a.facts}
@@ -346,3 +370,83 @@ def test_plan_frontier_waits_and_updates():
     # soc2 changed value since we sent it and is verified: an update is owed, not a fresh approval
     assert p["updates"][0]["kind"] == "update_owed"
     assert "acme:R-03" not in {r.id for r in p["ready"]}
+
+
+def test_action_kind_comes_from_proof_type():
+    def kind(proof, status):
+        return planner.action_kind(Fact(key="acme.x", name="x", deal="acme", spec=spec(proof=proof),
+                                        status=status))
+    assert kind("document", "unconfirmed") == "get_evidence"
+    assert kind("owner_confirmation", "unconfirmed") == "confirm"
+    assert kind("customer", "undecided") == "ask_customer"
+    assert kind("owner_confirmation", "undecided") == "decide"
+    assert kind("document", "out_of_date") == "renew"
+    assert kind("owner_confirmation", "conflicting") == "settle"
+    assert kind("document", "conflicting") == "get_evidence"
+
+
+# ---------- stable requirement ids ----------
+
+def _ask(i, origin="questionnaire", qid=None, rnd=1, quote="q"):
+    return Ask(id=i, deal="acme", origin=origin, text=quote, quote=quote, source_id="s", qid=qid,
+               round=rnd)
+
+
+def test_requirement_ids_are_stable():
+    taken: set[str] = set()
+    assert requirements.stable_id("acme", _ask("a", qid="Q-004"), taken) == "acme:Q-004"
+    assert requirements.stable_id("acme", _ask("b", qid="Q-012", rnd=2), taken) == "acme:R2-Q-012"
+    email = _ask("c", origin="customer", quote="Please list subprocessors.")
+    eid = requirements.stable_id("acme", email, taken)
+    assert eid.startswith("acme:E-") and len(eid) == len("acme:E-1a2b")
+    # the same quote gives the same id in a fresh build, whatever else was asked
+    assert requirements.stable_id("acme", email, set()) == eid
+    assert requirements.stable_id("acme", email, taken) == eid + "-2"   # duplicates stay unique
+    pred = _ask("d", origin="predicted", quote="Business continuity testing")
+    assert requirements.stable_id("acme", pred, set()).startswith("acme:P-")
+
+
+def test_new_email_ask_does_not_shift_ids(monkeypatch):
+    cat = {"facts": {"x": spec()}}
+    asks = [_ask("acme:R1:Q-001", qid="Q-001", quote="Where is data stored?"),
+            _ask("acme:e1:0", origin="customer", quote="List subprocessors.")]
+    def fake(groups):
+        return lambda *a, **k: {"requirements": [
+            dict(title="t", track="Privacy", ask="a", ask_ids=g, facts=[], reading="",
+                 predicted_only=False, umbrella=False) for g in groups]}
+    monkeypatch.setattr(requirements.llm, "call_json", fake([["acme:R1:Q-001"], ["acme:e1:0"]]))
+    before = [r.id for r in requirements.merge_round_one("acme", "Acme", asks, [], cat)]
+    # a new email adds an ask that the model merges into the first requirement, and one new ask
+    more = asks[:1] + [_ask("acme:e0:0", origin="customer", quote="Also: retention?")] + asks[1:]
+    monkeypatch.setattr(requirements.llm, "call_json",
+                        fake([["acme:R1:Q-001", "acme:e0:0"], ["acme:e1:0"]]))
+    after = [r.id for r in requirements.merge_round_one("acme", "Acme", more, [], cat)]
+    assert before == after == ["acme:Q-001", before[1]] and before[1].startswith("acme:E-")
+
+
+def test_match_round_code_checks(monkeypatch):
+    from pn.models import Requirement
+    cat = {"facts": {"x": spec(), "y": spec()}}
+    r1 = _ask("acme:R1:Q-012", qid="Q-012", quote="Which model providers?")
+    reqs = [Requirement(id="acme:Q-012", deal="acme", title="Providers", track="AI", ask="a",
+                        ask_ids=[r1.id], facts=["x"]),
+            Requirement(id="acme:no-text", deal="acme", title="none", track="P", ask="", ask_ids=[],
+                        facts=[], status="missing_text"),
+            Requirement(id="acme:P-aaaa", deal="acme", title="Monitoring", track="AI", ask="m",
+                        ask_ids=[], facts=[], status="predicted")]
+    new = [_ask("acme:R2:Q-012", qid="Q-012", rnd=2, quote="How is AI monitored?"),
+           _ask("acme:R2:Q-070", qid="Q-070", rnd=2, quote="Anything else?"),
+           _ask("acme:R2:Q-071", qid="Q-071", rnd=2, quote="Skipped")]
+    out = {"matches": [
+        dict(ask_id="acme:R2:Q-012", relation="repeat_with_changes", requirement="#2",
+             added_part="monitoring", facts=["y"], title=""),
+        dict(ask_id="acme:R2:Q-070", relation="repeat", requirement="none", added_part="",
+             facts=[], title="Other")]}
+    monkeypatch.setattr(requirements.llm, "call_json", lambda *a, **k: out)
+    recs = requirements.match_round("acme", 2, new, reqs, {r1.id: r1}, cat)
+    by_q = {x["qid"]: x for x in recs}
+    assert by_q["Q-012"]["requirement_id"] == "acme:P-aaaa" and reqs[2].status == "open"  # predicted -> open
+    assert by_q["Q-012"]["reused_number"]                    # number reused for another question
+    assert by_q["Q-070"]["relation"] == "new" and by_q["Q-070"]["requirement_id"] == "acme:R2-Q-070"
+    assert by_q["Q-071"]["relation"] == "new"                # skipped by the model: still lands
+    assert "acme:no-text" not in {x["requirement_id"] for x in recs}

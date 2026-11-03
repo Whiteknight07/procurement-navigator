@@ -102,4 +102,3 @@ def enum(*values: str) -> dict:
 STR = {"type": "string"}
 NSTR = {"type": ["string", "null"]}
 BOOL = {"type": "boolean"}
-NUM = {"type": "number"}

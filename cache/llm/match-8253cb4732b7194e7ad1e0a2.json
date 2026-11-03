@@ -1,0 +1,95 @@
+{
+ "task": "match",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2818,
+  "completion_tokens": 645,
+  "total_tokens": 3463,
+  "cost": 0.00674675,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2815,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00674675,
+   "upstream_inference_prompt_cost": 0.00352175,
+   "upstream_inference_completions_cost": 0.003225
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 288,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "matches": [
+   {
+    "ask_id": "acme:R2:Q-004",
+    "relation": "repeat_with_changes",
+    "requirement": "#4",
+    "added_part": "Describe how customer deletion requests are handled and how long deletion takes.",
+    "facts": [],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-007",
+    "relation": "repeat_with_changes",
+    "requirement": "#7",
+    "added_part": "Provide a SOC 2 Type II report, using the 2026 report if that audit is complete.",
+    "facts": [
+     "soc2"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-009",
+    "relation": "repeat",
+    "requirement": "#9",
+    "added_part": "",
+    "facts": [],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-012",
+    "relation": "repeat",
+    "requirement": "#33",
+    "added_part": "",
+    "facts": [],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-021",
+    "relation": "repeat_with_changes",
+    "requirement": "#21",
+    "added_part": "Replace the expired certificate with a current certificate showing Cyber / Technology E&O coverage and its new expiry date.",
+    "facts": [
+     "insurance"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-061",
+    "relation": "repeat_with_changes",
+    "requirement": "#2",
+    "added_part": "Identify personal-information categories in real customer-support transcripts, if used, and describe how they are minimised.",
+    "facts": [
+     "personal_info_categories"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-062",
+    "relation": "repeat_with_changes",
+    "requirement": "#30",
+    "added_part": "Provide the date and outcome of the most recent business-continuity or disaster-recovery test.",
+    "facts": [
+     "bcp_dr_testing"
+    ],
+    "title": ""
+   }
+  ]
+ }
+}

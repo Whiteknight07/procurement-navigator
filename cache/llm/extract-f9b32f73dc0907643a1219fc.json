@@ -1,0 +1,44 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1890,
+  "completion_tokens": 248,
+  "total_tokens": 2138,
+  "cost": 0.00221935,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 735,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00221935,
+   "upstream_inference_prompt_cost": 0.00097935,
+   "upstream_inference_completions_cost": 0.00124
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 137,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "insurance",
+    "value": "Cyber / Technology E&O: CAD 5,000,000",
+    "quote": "Cyber / Technology E&O: CAD 5,000,000. Current certificate expires Oct 1, 2026. Renewal pending.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": null,
+    "valid_until": "2026-10-01",
+    "note": "Renewal pending."
+   }
+  ],
+  "asks": []
+ }
+}

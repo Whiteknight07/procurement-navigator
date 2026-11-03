@@ -4,14 +4,12 @@ as_of: 2026-11-03          # "today"; move it to see deadlines and expiry change
 
 # Trust tiers: lower wins. A claim's tier comes from where it was said and how.
 tiers:
-  evidence: 1              # a document in the evidence store (mock Vanta)
-  customer_statement: 1    # the customer stating its own requirement or decision
-  owner_confirmation: 2    # the owning team states it as current fact
-  deal_document: 3         # a document written for this customer (often a draft plan)
-  internal_chat: 4         # Slack or chat from someone else, or not stated as settled
-  questionnaire_draft: 5   # a draft answer already sitting in the questionnaire (origin unknown)
-  generic_document: 5      # describes the product in general, not this customer
-  other_customer: 9        # another customer's answers: a hint only, never the answer
+  evidence: 1              # a document in the evidence store (mock Vanta), or the customer's own
+                           # statement for facts only the customer can settle
+  owner_confirmed: 2       # the owning team's person states it as settled (chat, notes, email)
+  plan_or_chat: 3          # deal documents and drafts, other internal chat
+  hint: 4                  # generic product doc, questionnaire draft answer, another customer's
+                           # answer: shown, never wins, never verifies anything
 
 # How soon an expiring item becomes a warning.
 expiry_warning_days: 45

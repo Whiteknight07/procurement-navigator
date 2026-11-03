@@ -1,0 +1,44 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1938,
+  "completion_tokens": 174,
+  "total_tokens": 2112,
+  "cost": 0.00329175,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 1935,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00329175,
+   "upstream_inference_prompt_cost": 0.00242175,
+   "upstream_inference_completions_cost": 0.00087
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 92,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "service_description",
+    "value": "AI operations assistant for customer-service workflows",
+    "quote": "Service: AI operations assistant for customer-service workflows",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": []
+ }
+}

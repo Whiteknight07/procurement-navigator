@@ -1,0 +1,193 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1956,
+  "completion_tokens": 1516,
+  "total_tokens": 3472,
+  "cost": 0.00864185,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 801,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00864185,
+   "upstream_inference_prompt_cost": 0.00106185,
+   "upstream_inference_completions_cost": 0.00758
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 235,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "service_description",
+    "value": "Retrieves internal documents",
+    "quote": "the service retrieves internal documents",
+    "speaker": "AI Governance",
+    "speaker_side": "customer",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Can call business tools",
+    "quote": "can call business tools",
+    "speaker": "AI Governance",
+    "speaker_side": "customer",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": [
+   {
+    "text": "Complete the Supplier review.",
+    "quote": "Complete Supplier, Security, Privacy, AI Governance and Technology Resilience reviews.",
+    "who": "Priya",
+    "track": "Supplier",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Complete the Security review.",
+    "quote": "Complete Supplier, Security, Privacy, AI Governance and Technology Resilience reviews.",
+    "who": "Priya",
+    "track": "Security",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Complete the Privacy review.",
+    "quote": "Complete Supplier, Security, Privacy, AI Governance and Technology Resilience reviews.",
+    "who": "Priya",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Complete the AI Governance review.",
+    "quote": "Complete Supplier, Security, Privacy, AI Governance and Technology Resilience reviews.",
+    "who": "Priya",
+    "track": "Governance",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Complete the Technology Resilience review.",
+    "quote": "Complete Supplier, Security, Privacy, AI Governance and Technology Resilience reviews.",
+    "who": "Priya",
+    "track": "Resilience",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Records Management review may be triggered.",
+    "quote": "Records Management may be triggered.",
+    "who": "Priya",
+    "track": "Records",
+    "kind": "conditional",
+    "due_date": null
+   },
+   {
+    "text": "Target launch is November 16, 2026.",
+    "quote": "Target launch Nov 16.",
+    "who": "Business Sponsor",
+    "track": null,
+    "kind": "constraint",
+    "due_date": "2026-11-16"
+   },
+   {
+    "text": "Security and Privacy reviews can run in parallel.",
+    "quote": "Security and Privacy can run in parallel.",
+    "who": "Business Sponsor",
+    "track": null,
+    "kind": "constraint",
+    "due_date": null
+   },
+   {
+    "text": "AI Governance meets Wednesdays.",
+    "quote": "AI Governance meets Wednesdays.",
+    "who": "Business Sponsor",
+    "track": "Governance",
+    "kind": "constraint",
+    "due_date": null
+   },
+   {
+    "text": "Explain tool authorization.",
+    "quote": "explain tool authorization, human oversight, evaluation and untrusted-content handling.",
+    "who": "AI Governance",
+    "track": "AI Risk",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Explain human oversight.",
+    "quote": "explain tool authorization, human oversight, evaluation and untrusted-content handling.",
+    "who": "AI Governance",
+    "track": "AI Risk",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Explain evaluation.",
+    "quote": "explain tool authorization, human oversight, evaluation and untrusted-content handling.",
+    "who": "AI Governance",
+    "track": "AI Risk",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Explain untrusted-content handling.",
+    "quote": "explain tool authorization, human oversight, evaluation and untrusted-content handling.",
+    "who": "AI Governance",
+    "track": "AI Risk",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Clarify employee-data scope.",
+    "quote": "Clarify employee-data scope, inference geography, retention by data type and subprocessors.",
+    "who": "Privacy",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Clarify inference geography.",
+    "quote": "Clarify employee-data scope, inference geography, retention by data type and subprocessors.",
+    "who": "Privacy",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Clarify retention by data type.",
+    "quote": "Clarify employee-data scope, inference geography, retention by data type and subprocessors.",
+    "who": "Privacy",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   },
+   {
+    "text": "Clarify subprocessors.",
+    "quote": "Clarify employee-data scope, inference geography, retention by data type and subprocessors.",
+    "who": "Privacy",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   }
+  ]
+ }
+}

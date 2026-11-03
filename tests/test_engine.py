@@ -30,8 +30,11 @@ def monkeypatch_module():
 
 
 def test_company_evidence_freshness(state):
-    assert state.facts["company.insurance"].status == "expired"
-    assert state.facts["company.pen_test"].status == "stale"
+    ins, pen = state.facts["company.insurance"], state.facts["company.pen_test"]
+    assert ins.status == pen.status == "out_of_date"
+    assert ins.reason.startswith("Expired") and pen.reason.startswith("Stale")
+    # the Vanta file shows the findings open; the owner's "fixed" chat cannot be verified by it
+    assert state.facts["company.pen_test_remediation"].status != "verified"
 
 
 def test_residency_is_root_blocker_for_acme(state):
@@ -45,7 +48,7 @@ def test_residency_is_root_blocker_for_acme(state):
 def test_other_customer_logs_never_win(state):
     f = state.facts["acme.retention_app_logs"]
     assert f.winner is not None and f.winner.applies_to != "other_customer"
-    assert f.winner.tier < 9 and "30" not in f.value
+    assert f.winner.tier < 4 and "30" not in f.value
     assert any(h.value.startswith("30") for h in f.hints)   # Meridian's answer kept as a hint
 
 
@@ -53,10 +56,13 @@ def test_template_controls_flagged(state):
     for deal in ("acme", "northstar"):
         bucket = [r for r in state.reqs[deal] if r.status == "missing_text"]
         assert len(bucket) == 1 and len(bucket[0].ask_ids) == 37
+        assert bucket[0].id == f"{deal}:no-text"
+        ids = [r.id for r in state.reqs[deal]]
+        assert len(ids) == len(set(ids)) and f"{deal}:Q-004" in ids
 
 
 def test_plan_shape(state):
     assert set(state.plan) >= {"actions", "waits", "updates", "blockers", "delays", "ready",
-                               "batches", "holds"}
+                               "batches"}
     ids = [c.id for c in state.claims]
     assert len(ids) == len(set(ids))   # claim ids are unique

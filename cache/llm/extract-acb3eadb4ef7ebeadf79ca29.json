@@ -1,0 +1,140 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1965,
+  "completion_tokens": 1306,
+  "total_tokens": 3271,
+  "cost": 0.0076031,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 810,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0076031,
+   "upstream_inference_prompt_cost": 0.0010731,
+   "upstream_inference_completions_cost": 0.00653
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 364,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "enterprise app logs should be 14d now.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Stated as the expected enterprise configuration, not confirmed for Acme."
+   },
+   {
+    "fact": "retention_traces",
+    "value": "Separately configured",
+    "quote": "observability traces have separate configuration.",
+    "speaker": "Dev",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Trace retention and payload capture are not specified."
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic enabled globally",
+    "quote": "globally yes",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Response to a question about Anthropic fallback."
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic probably disabled if residency or legal requires it; not finalized",
+    "quote": "for Acme probably disable if residency/legal requires it. Not finalized.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "undecided",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "pen_test",
+    "value": "February 2026; 2 medium findings",
+    "quote": "Feb pen test had 2 mediums",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": "2026-02-01",
+    "valid_until": null,
+    "note": "The input does not specify whether the test was external."
+   },
+   {
+    "fact": "pen_test_remediation",
+    "value": "Remediated; evidence needed",
+    "quote": "remediated later, but need evidence.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Refers to the two medium findings from the February test."
+   },
+   {
+    "fact": "dpa_status",
+    "value": "Blocked until subprocessors and cross-border transfers are confirmed",
+    "quote": "DPA blocked until subprocessors and cross-border transfers are confirmed.",
+    "speaker": "Legal",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "subprocessors",
+    "value": "Not confirmed",
+    "quote": "until subprocessors and cross-border transfers are confirmed.",
+    "speaker": "Legal",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "undecided",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Confirmation is a DPA blocker."
+   },
+   {
+    "fact": "cross_border_transfers",
+    "value": "Not confirmed",
+    "quote": "until subprocessors and cross-border transfers are confirmed.",
+    "speaker": "Legal",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "undecided",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Confirmation is a DPA blocker."
+   }
+  ],
+  "asks": []
+ }
+}

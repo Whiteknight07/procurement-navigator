@@ -10,6 +10,7 @@ file, never state/ledger.jsonl. Writes evals/results.md.
 
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import tempfile
@@ -102,8 +103,8 @@ def req_by_id(st, rid):
 def base_checks(st):
     print("\n## Traps")
     sec = "Traps"
-    hints = [c for f in st.facts.values() for c in f.hints]
-    bad = [k for k, f in winners(st) if f.winner.applies_to == "other_customer" or f.winner.tier >= 9
+    hints = [c for f in st.facts.values() for c in f.hints if c.applies_to == "other_customer"]
+    bad = [k for k, f in winners(st) if f.winner.applies_to == "other_customer" or f.winner.tier >= 4
            or any(n.lower() in f.winner.quote.lower() for n in K.OTHER_CUSTOMERS)
            or any(s in st.sources[f.winner.source_id].title for s in K.OTHER_CUSTOMER_SOURCES)]
     check(sec, "Other-customer claims (Meridian, BluePeak) never win a fact", hints and not bad,
@@ -142,23 +143,25 @@ def base_checks(st):
                   f"{leaked or 'none'}; request-text action: {action}")
 
     bad = [k for k, f in winners(st) if f.status == "verified"
-           and (f.winner.applies_to == "generic_platform" or f.winner.tier == 5)]
-    gen = [k for k, f in winners(st) if f.winner.applies_to == "generic_platform"]
+           and (f.winner.applies_to == "generic_platform" or f.winner.tier >= 4)]
+    gen = [k for k, f in st.facts.items() if any(h.applies_to == "generic_platform" for h in f.hints)]
     check(sec, "A generic product doc never makes a fact verified", not bad,
-          f"{len(gen)} facts whose best source is generic, all unverified" if not bad else f"verified: {bad}")
+          f"{len(gen)} facts have a generic-doc claim, kept as a hint" if not bad else f"verified: {bad}")
 
     print("\n## Evidence and time")
     sec = "Evidence and time"
     f = st.facts[K.EXPIRED]
-    check(sec, f"{K.EXPIRED} expired as of {K.AS_OF}", st.as_of == K.AS_OF and f.status == "expired",
+    check(sec, f"{K.EXPIRED} expired as of {K.AS_OF}",
+          st.as_of == K.AS_OF and f.status == "out_of_date" and f.reason.startswith("Expired"),
           f"{f.status}: {f.reason}")
     k, max_age = K.STALE
     f = st.facts[k]
     age = (st.as_of - f.winner.as_of_date).days if f.winner and f.winner.as_of_date else None
-    check(sec, f"{k} stale (Feb 2026, older than {max_age} days)", f.status == "stale" and age and age > max_age,
+    check(sec, f"{k} stale (Feb 2026, older than {max_age} days)",
+          f.status == "out_of_date" and f.reason.startswith("Stale") and age and age > max_age,
           f"{f.status}: {f.reason}")
     f = st.facts[K.NOT_VERIFIED]
-    check(sec, f"{K.NOT_VERIFIED} not verified (only a chat claim; evidence file has no remediation proof)",
+    check(sec, f"{K.NOT_VERIFIED} not verified (owner chat says fixed; evidence file shows them open)",
           f.status != "verified",
           f"{f.status}, value \"{f.value}\" from {st.sources[f.winner.source_id].title if f.winner else '-'}; "
           f"{f.reason}")
@@ -257,7 +260,6 @@ def story_checks(base, ledger_path: Path, inbox: Inbox):
     sec = "Story"
     soc2_req = next(r for r in base.reqs["acme"] if "soc2" in r.facts)
     f = base.facts[K.SOC2]
-    import json
     ledger_path.write_text(json.dumps({
         "type": "sent", "deal": "acme", "req": soc2_req.id, "version": "eval",
         "text": "SOC 2 Type II 2025 final; 2026 audit in progress.",
@@ -306,7 +308,7 @@ def story_checks(base, ledger_path: Path, inbox: Inbox):
 
 def write_results() -> tuple[int, int]:
     n_ok = sum(c["ok"] for c in checks)
-    lines = [f"# Eval results", "",
+    lines = ["# Eval results", "",
              f"Run {datetime.now():%Y-%m-%d %H:%M} · as-of {K.AS_OF} · model {llm.MODEL} ({llm.REASONING})", "",
              f"**Score: {n_ok} / {len(checks)} checks pass**", "", "Builds:", ""]
     lines += [f"- {b}" for b in builds]

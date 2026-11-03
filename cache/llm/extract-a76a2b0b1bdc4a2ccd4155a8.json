@@ -1,0 +1,113 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2069,
+  "completion_tokens": 1494,
+  "total_tokens": 3563,
+  "cost": 0.0086731,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 914,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0086731,
+   "upstream_inference_prompt_cost": 0.0012031,
+   "upstream_inference_completions_cost": 0.00747
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 735,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "external_approval_policy",
+    "value": "All customer responses require Jai's approval; he is the sole approver",
+    "quote": "Jai approves every response before it is sent to a customer. He is the only approver today.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": "2026-11-03",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "Jai checks answers with the team that owns them",
+    "quote": "To check an answer is correct, Jai asks the team that owns it",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "Customers are informed promptly when a prior answer changes",
+    "quote": "Answers change during a deal. If we told a customer an audit was in progress and it becomes final, we tell them straight away.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "The audit example is hypothetical, not a claim about an actual audit."
+   },
+   {
+    "fact": "other",
+    "value": "Vanta answers are trusted more than other sources",
+    "quote": "Answers that come from the compliance platform (Vanta) are trusted more than other sources.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "No central record of responses sent to each customer",
+    "quote": "There is no central record of what has been sent to each customer.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "Typical deal duration: 2-3 months",
+    "quote": "A typical deal takes 2-3 months.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": [
+   {
+    "text": "Provide a recent red-team or penetration-test report; evidence older than about six months may not work for a new customer.",
+    "quote": "evidence like a red-team or penetration-test report older than about 6 months will not work for a new customer.",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   }
+  ]
+ }
+}

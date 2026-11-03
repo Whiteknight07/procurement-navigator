@@ -1,6 +1,7 @@
-"""What people did: approvals, sends (with a snapshot of the facts they relied on), asks, decisions.
-
-Append-only JSON lines. This is the "what did we tell each customer" record that does not exist
+"""What people did. Two entry types, append-only JSON lines:
+  sent   Jai approved this exact answer version and sent it (with a snapshot of the facts it used)
+  asked  Jai sent someone a batched message (the briefing tracks the wait from here)
+This is the "what did we tell each customer" record that does not exist
 today. Updates owed are worked out by comparing each send's snapshot with the facts now.
 """
 

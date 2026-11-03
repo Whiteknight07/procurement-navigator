@@ -1,0 +1,92 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1920,
+  "completion_tokens": 601,
+  "total_tokens": 2521,
+  "cost": 0.00402185,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 765,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00402185,
+   "upstream_inference_prompt_cost": 0.00101685,
+   "upstream_inference_completions_cost": 0.003005
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 231,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic fallback enabled",
+    "quote": "BluePeak enabled Anthropic fallback",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "BluePeak configuration, not Northstar."
+   },
+   {
+    "fact": "model_providers",
+    "value": "Anthropic as fallback",
+    "quote": "BluePeak enabled Anthropic fallback",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "The primary provider is not identified."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "30 days",
+    "quote": "30-day logs",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "Log type is not specified."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Write-enabled CRM connector",
+    "quote": "a write-enabled CRM connector",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "BluePeak configuration, not Northstar."
+   },
+   {
+    "fact": "rto_rpo",
+    "value": "24-hour RTO and RPO",
+    "quote": "customer-specific 24h RTO/RPO commitments",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "Customer-specific commitments for BluePeak."
+   }
+  ],
+  "asks": []
+ }
+}

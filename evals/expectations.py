@@ -21,7 +21,7 @@ DRAFT_RTO = {"fact": "company.rto_rpo", "draft": "24h / 24h?"}   # matches a pri
 EXPIRED = "company.insurance"            # certificate expired Oct 1, 2026
 STALE = ("company.pen_test", 183)        # Feb 2026 report; Jai: ~6 months is the limit
 NOT_VERIFIED = "company.pen_test_remediation"   # only Anthony's chat says "remediated later";
-                                                # the Vanta file says it has no remediation evidence
+                                                # the Vanta file shows the findings OPEN
 SOC2 = "company.soc2"                    # 2025 report final in Vanta; 2026 audit not final
 
 # ---------- root causes ----------
@@ -49,24 +49,23 @@ NORTHSTAR_CADENCE = "wednesday"
 # not_ask: must NOT contain it. facts_any: matched requirement must link one of these facts.
 ROUND2_INPUT = "01_acme_round2.json"
 ROUND2 = {
-    "Q-004": dict(relations=["repeat_with_addition"], has_ask="acme:R1:Q-004", added=["delet"],
+    "Q-004": dict(relations=["repeat_with_changes"], has_ask="acme:R1:Q-004", added=["delet"],
                   why="Retention restated, plus a new deletion-request part."),
-    "Q-007": dict(relations=["changed", "repeat_with_addition"], has_ask="acme:R1:Q-007", added=["2026"],
-                  why="Same SOC 2 ask, now asks for the 2026 report if final. Either label is fair."),
+    "Q-007": dict(relations=["repeat_with_changes"], has_ask="acme:R1:Q-007", added=["2026"],
+                  why="Same SOC 2 ask, now asks for the 2026 report if final."),
     "Q-009": dict(relations=["repeat"], has_ask="acme:R1:Q-009",
                   why="Word-for-word the same as round 1 Q-009."),
-    "Q-012": dict(relations=["new", "repeat", "repeat_with_addition", "changed"], not_ask="acme:R1:Q-012",
+    "Q-012": dict(relations=["new", "repeat", "repeat_with_changes"], not_ask="acme:R1:Q-012",
                   reused=True, facts_any=["ai_monitoring"],
                   why="Number reused: round 1 Q-012 was model providers, round 2 Q-012 is AI monitoring. "
                       "New, or matched to the predicted monitoring topic, are both fine."),
-    "Q-021": dict(relations=["changed", "repeat_with_addition"], has_ask="acme:R1:Q-021",
+    "Q-021": dict(relations=["repeat_with_changes"], has_ask="acme:R1:Q-021",
                   why="Insurance again, now noting the expiry and asking for the new certificate."),
-    "Q-061": dict(relations=["repeat_with_addition", "changed"],
+    "Q-061": dict(relations=["repeat_with_changes"],
                   facts_any=["personal_info_categories"],
                   why="Personal-information scope, conditional on real transcripts, plus minimisation. "
-                      "It can attach to the PI-scope requirement or to Nina's 'what changes' requirement; "
-                      "'changed' is also a fair reading."),
-    "Q-062": dict(relations=["repeat", "repeat_with_addition", "changed"], facts_any=["bcp_dr_testing"],
+                      "It can attach to the PI-scope requirement or to Nina's 'what changes' requirement."),
+    "Q-062": dict(relations=["repeat", "repeat_with_changes"], facts_any=["bcp_dr_testing"],
                   not_predicted=True,
                   why="Business continuity was predicted from the guidance doc; now it is actually asked."),
 }

@@ -1,0 +1,53 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1908,
+  "completion_tokens": 386,
+  "total_tokens": 2294,
+  "cost": 0.00293185,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 753,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00293185,
+   "upstream_inference_prompt_cost": 0.00100185,
+   "upstream_inference_completions_cost": 0.00193
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 203,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "residency_requirement",
+    "value": "Customer content must not be processed outside Canada, including model inference and fallback providers",
+    "quote": "Acme requires that customer content is not processed outside Canada, including model inference and any fallback provider.",
+    "speaker": "Elena",
+    "speaker_side": "customer",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Storage in Canada alone is not sufficient."
+   }
+  ],
+  "asks": [
+   {
+    "text": "Keep customer content processing in Canada, including model inference and any fallback provider; Canadian storage alone is insufficient.",
+    "quote": "Acme requires that customer content is not processed outside Canada, including model inference and any fallback provider. Storage in Canada alone is not sufficient.",
+    "who": "Elena",
+    "track": "Privacy",
+    "kind": "requirement",
+    "due_date": null
+   }
+  ]
+ }
+}

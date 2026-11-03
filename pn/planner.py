@@ -13,17 +13,30 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, timedelta
 
-from .models import Action, Fact, Requirement
-from .resolve import chain, dep_keys, root_causes, _tokens
+from .models import Action, Fact
+from .resolve import chain, dep_keys, root_causes, tokens
 
-KIND_BY_STATUS = {
-    "unknown": "confirm", "needs_confirmation": "confirm", "needs_proof": "get_evidence",
-    "conflicting": "resolve_conflict", "undecided": "decide", "stale": "renew", "expired": "renew",
-}
 VERB = {
-    "confirm": "Confirm", "get_evidence": "Get evidence for", "resolve_conflict": "Settle conflict on",
+    "confirm": "Confirm", "get_evidence": "Get evidence for", "settle": "Settle conflict on",
     "decide": "Decide", "renew": "Renew", "ask_customer": "Ask the customer about",
 }
+BY_PROOF = {"document": "get_evidence", "owner_confirmation": "confirm", "customer": "ask_customer"}
+LIVE = lambda r: r.status not in ("missing_text", "predicted", "umbrella")
+
+
+def action_kind(f: Fact) -> str:
+    """What has to happen to settle a fact. The catalog's proof type decides, except where the
+    status says something else is needed first."""
+    proof = f.spec["proof"]
+    if proof == "customer":
+        return "ask_customer"          # only the customer can settle it, whatever the status
+    if f.status == "undecided":
+        return "decide"
+    if f.status == "out_of_date":
+        return "renew"
+    if f.status == "conflicting":     # a conflict on a document fact is settled by evidence
+        return "get_evidence" if proof == "document" else "settle"
+    return BY_PROOF[proof]
 
 
 def fact_key(deal: str, name: str, catalog: dict) -> str:
@@ -54,18 +67,15 @@ def plan(state) -> dict:
     facts: dict[str, Fact] = state.facts
     catalog, policy, as_of = state.catalog, state.policy, state.as_of
     team_owner, reply = policy["team_owner"], policy["reply_days"]
-    live = [r for rs in state.reqs.values() for r in rs
-            if r.status not in ("missing_text", "predicted", "umbrella")]
+    live = [r for rs in state.reqs.values() for r in rs if LIVE(r)]
 
     # requirement status
     for rs in state.reqs.values():
         for r in rs:
-            if r.status in ("missing_text", "predicted", "umbrella"):
-                r.gaps = [fact_key(r.deal, n, catalog) for n in r.facts
-                          if facts[fact_key(r.deal, n, catalog)].status != "verified"]
-                continue
             keys = [fact_key(r.deal, n, catalog) for n in r.facts]
             r.gaps = [k for k in keys if facts[k].status != "verified"]
+            if not LIVE(r):
+                continue
             if not keys:
                 r.status = "unmapped"
             elif not r.gaps:
@@ -84,7 +94,7 @@ def plan(state) -> dict:
 
     def customer_contact(deal: str, track: str, f: Fact) -> str:
         for c in f.claims:   # whoever on the customer side raised it decides it
-            if getattr(c, "speaker_side", "") == "customer" and c.speaker:
+            if c.speaker_side == "customer" and c.speaker:
                 return c.speaker
         for a in state.asks.values():
             if a.deal == deal and a.origin == "customer" and a.who and a.track == track:
@@ -100,21 +110,19 @@ def plan(state) -> dict:
             continue
         deal = None if k.startswith("company.") else k.split(".")[0]
         deals = sorted({rid.split(":")[0] for rid in holds[k]})
-        if f.spec["proof"] == "customer":
-            kind = "ask_customer"
+        kind = action_kind(f)
+        if kind == "ask_customer":
             who = customer_contact(deal, f.spec["track"], f) if deal else "Customer Procurement"
             rd = reply.get("Customer Procurement", 2)
         else:
-            kind = KIND_BY_STATUS[f.status]
-            if f.status == "conflicting" and f.spec["proof"] == "document":
-                kind = "get_evidence"
             who = team_owner.get(f.spec["owner"], f.spec["owner"])
             rd = reply.get(who, reply["default"])
+        hint = f.hints[0] if f.hints else None
         proposed = {"fact": k, "question": f.spec["question"], "status": f.status,
                     "value": f.value, "reason": f.reason,
                     "source": state.sources[f.winner.source_id].title if f.winner else None,
-                    "hint": f.hints[0].value if f.hints else None}
-        a = Action(kind=kind, who=who, title=f"{VERB[kind]}: {label(k, catalog)}",
+                    "hint": f"\"{hint.value}\" ({hint.tier_reason})" if hint else None}
+        a = Action(kind=kind, who=who, title=f"{VERB[kind]}: {label(k)}",
                    detail=f.reason, facts=[k], deals=deals, unblocks=len(set(holds[k])),
                    reply_days=rd, proposed=[proposed])
         actions[(kind, k)] = a
@@ -158,7 +166,7 @@ def plan(state) -> dict:
             f = facts.get(k)
             if not f:
                 continue
-            if f.status != snap["status"] or _tokens(f.value or "") != _tokens(snap["value"] or ""):
+            if f.status != snap["status"] or tokens(f.value or "") != tokens(snap["value"] or ""):
                 changes.append({"fact": k, "was": snap, "now": {"value": f.value, "status": f.status}})
         if changes:
             # Tell the customer only once the new value is verified; until then it is an
@@ -170,7 +178,8 @@ def plan(state) -> dict:
                 actions[("send_update", rid)] = Action(
                     kind="send_update", who="Jai", title=f"Send an update: {req_title(state, rid)}",
                     detail=f"Sent {e['date']}; {len(changes)} fact(s) changed since and are now verified.",
-                    facts=[c["fact"] for c in changes], deals=[e["deal"]], unblocks=1, reply_days=0.5)
+                    facts=[c["fact"] for c in changes], deals=[e["deal"]], unblocks=1, reply_days=0.5,
+                    req=rid)
 
     # answers ready for Jai
     sent_reqs = set(sent_latest)
@@ -179,7 +188,7 @@ def plan(state) -> dict:
         actions[("approve", r.id)] = Action(
             kind="approve", who="Jai", title=f"Approve answer: {r.title}",
             detail=f"{state.deal_names[r.deal]} · every fact it needs is verified",
-            deals=[r.deal], unblocks=1, reply_days=0.5)
+            deals=[r.deal], unblocks=1, reply_days=0.5, req=r.id)
 
     ranked = sorted(actions.values(),
                     key=lambda a: (a.waiting_since is not None, -a.unblocks, -a.reply_days, a.title))
@@ -192,7 +201,7 @@ def plan(state) -> dict:
                 d = roots.setdefault(root, {"fact": root, "reqs": set(), "chains": set()})
                 d["reqs"].add(r.id)
                 if g != root:
-                    d["chains"].add(" → ".join(label(x, catalog) for x in chain(g, facts)))
+                    d["chains"].add(" → ".join(label(x) for x in chain(g, facts)))
     blockers = sorted(({**v, "reqs": sorted(v["reqs"]), "chains": sorted(v["chains"])}
                        for v in roots.values()), key=lambda v: -len(v["reqs"]))
 
@@ -214,11 +223,11 @@ def plan(state) -> dict:
                 if k.startswith("company.") and f.winner and f.winner.valid_until and \
                         as_of <= f.winner.valid_until < due:
                     delays.append({"deal": deal, "kind": "expires_before_target",
-                                   "text": f"{label(k, catalog)} expires {f.winner.valid_until:%b %d}, before {t.text}."})
+                                   "text": f"{label(k)} expires {f.winner.valid_until:%b %d}, before {t.text}."})
     for k, f in facts.items():
-        if f.status in ("stale", "expired") and holds.get(k):
+        if f.status == "out_of_date" and holds.get(k):
             delays.append({"deal": ", ".join(sorted({x.split(':')[0] for x in holds[k]})),
-                           "kind": f.status, "text": f"{label(k, catalog)}: {f.reason}"})
+                           "kind": "out_of_date", "text": f"{label(k)}: {f.reason}"})
     for w in waits:
         if w["overdue"]:
             delays.append({"deal": "", "kind": "overdue_wait",
@@ -230,7 +239,7 @@ def plan(state) -> dict:
             batches[a.who].append(a)
 
     return {"actions": ranked, "waits": waits, "updates": updates, "blockers": blockers,
-            "delays": delays, "ready": ready, "batches": dict(batches), "holds": dict(holds)}
+            "delays": delays, "ready": ready, "batches": dict(batches)}
 
 
 def _d(s):
@@ -240,7 +249,7 @@ def _d(s):
         return None
 
 
-def label(key: str, catalog: dict) -> str:
+def label(key: str) -> str:
     scope, name = key.split(".", 1)
     pretty = name.replace("_", " ")
     return pretty if scope == "company" else f"{scope.title()} {pretty}"
@@ -269,14 +278,14 @@ def batch_message(who: str, items: list[Action], state) -> str:
         if p["value"]:
             cur = f"we have \"{p['value']}\" from {p['source']}"
         elif p["hint"]:
-            cur = f"nothing for this deal (another customer had \"{p['hint']}\", which does not count)"
+            cur = f"nothing usable (a hint says {p['hint']}, which does not count)"
         else:
             cur = "nothing on file"
         ask = {"confirm": "Is this right for the deployed setup?",
                "get_evidence": "Can you put the document in Vanta?",
                "renew": "Can you start the renewal?",
                "decide": "What is the decision?",
-               "resolve_conflict": "Which is right?",
+               "settle": "Which is right?",
                "ask_customer": "Can you tell us?"}.get(a.kind, "")
         lines.append(f"{n}. [{', '.join(state.deal_names[d] for d in a.deals)}] {q} "
                      f"Today {cur}. {p['reason']} {ask}")

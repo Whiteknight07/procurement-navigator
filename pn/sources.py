@@ -131,7 +131,8 @@ def parse_questionnaire(src: Source) -> tuple[list[Ask], list[dict]]:
     """Rows become asks. Rows whose text is the same boilerplate with only a number changed
     ("Control 24: provide the customer-specific answer ...") carry no real question: flag them.
 
-    Returns (asks, draft_answers) where draft_answers are answers already typed into the sheet.
+    Returns (asks, draft_answers) where draft_answers are answers already typed into the sheet;
+    the engine attaches them as hints to the facts of the requirement holding that row.
     """
     # short rows give None for missing cells; rows with no question are not asks
     rows = [r for r in csv.DictReader(io.StringIO(src.text)) if (r.get("question") or "").strip()]
@@ -150,7 +151,6 @@ def parse_questionnaire(src: Source) -> tuple[list[Ask], list[dict]]:
             track=(r.get("section") or "").strip() or None, round=src.round, qid=qid,
             template=template))
         if (r.get("draft_answer") or "").strip():
-            drafts.append({"ask_id": ask_id, "qid": qid, "question": q,
-                           "draft_answer": r["draft_answer"].strip(),
+            drafts.append({"ask_id": ask_id, "qid": qid, "draft_answer": r["draft_answer"].strip(),
                            "note": (r.get("note") or "").strip()})
     return asks, drafts

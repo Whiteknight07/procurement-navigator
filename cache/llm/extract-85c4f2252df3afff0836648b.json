@@ -1,0 +1,56 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1913,
+  "completion_tokens": 368,
+  "total_tokens": 2281,
+  "cost": 0.0028481,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 758,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0028481,
+   "upstream_inference_prompt_cost": 0.0010081,
+   "upstream_inference_completions_cost": 0.00184
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 147,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "pen_test",
+    "value": "External test in February 2026; no Critical or High findings; two Medium findings open in original report",
+    "quote": "External penetration test - Feb 2026.\nNo Critical or High findings. Two Medium findings were OPEN in the original report:\nM-01 internal service-token scope; M-02 rate-limit bypass under retry pattern.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-02-01",
+    "valid_until": null,
+    "note": "Medium findings concerned internal service-token scope and a rate-limit bypass under a retry pattern."
+   },
+   {
+    "fact": "pen_test_remediation",
+    "value": "No remediation evidence in file",
+    "quote": "This file contains no remediation evidence.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "The file does not establish whether the findings were subsequently fixed."
+   }
+  ],
+  "asks": []
+ }
+}
