@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import shutil
 import time
 from collections import Counter
@@ -12,7 +13,7 @@ from pathlib import Path
 import streamlit as st
 
 from pn import drafting, engine, ledger, llm
-from pn.planner import LIVE, batch_message, fact_key, label
+from pn.planner import LIVE, batch_message, closure, fact_key, label
 
 ROOT = Path(__file__).parent
 INBOX = ROOT / "state" / "inbox"
@@ -249,8 +250,8 @@ if "changes" in st.session_state:
 def needed_by(keys) -> str:
     """Requirements that need any of these questions, e.g. "Q-004 Retention by data type, Q-012 …"."""
     keys = set(keys)
-    rs = [r for d, lst in S.reqs.items() for r in lst if LIVE(r)   # same answers "unblocks" counts
-          and any(fact_key(d, n, S.catalog) in keys for n in r.facts)]
+    rs = [r for d, lst in S.reqs.items() for r in lst if LIVE(r)   # same answers "unblocks" counts,
+          and keys & closure([fact_key(d, n, S.catalog) for n in r.facts], S.facts)]   # chains included
     names = [f"{r.id.split(':')[1]} {r.title}" + ("" if len(S.reqs) < 2 else f" ({DN[r.deal]})") for r in rs]
     return ", ".join(names[:5]) + (f", and {len(names) - 5} more" if len(names) > 5 else "")
 
@@ -306,8 +307,7 @@ def briefing():
                         + (f". {no_text} questionnaire rows have no real question text yet." if no_text else "."))
 
     st.divider()
-    left, right = st.columns([1, 1], gap="large")
-    with left:
+    if True:   # one column: what needs Jai personally
         st.header("For you to do")
         if not jai and not P["batches"]:
             st.caption("Nothing needs you right now.")
@@ -330,21 +330,12 @@ def briefing():
             st.markdown(f"**Send {plural(len(P['batches']), 'message')}**, one per person, below. Each item "
                         "carries our current best answer so they only confirm or correct it.")
         if S.draft_flags:
-            st.subheader("Pre-filled questionnaire answers not to send")
+            st.subheader("Answers already typed into the questionnaires: don't send these")
+            st.caption("Someone at Lantern pre-filled these rows before any checking. Each one is either wrong "
+                       "or has nothing behind it, often copied from an old doc or another customer.")
             for f in S.draft_flags:
-                st.markdown(f"- {f['text']}")
-    with right:
-        st.header("Root blockers")
-        st.caption("Fix these and everything waiting behind them can move.")
-        for b in blockers[:6]:
-            f = S.facts[b["fact"]]
-            st.markdown(f"{badge(f.status)} **{label(b['fact'])}** holds up "
-                        f"**{plural(len(b['reqs']), 'requirement')}**  \n:gray[{f.reason}]")
-            for c in b["chains"][:1]:
-                st.caption(f"↳ {c}")
-        if len(blockers) > 6:
-            st.caption(f"{len(blockers) - 6} smaller blockers are on each deal screen.")
-
+                text = re.sub(r"^\[\w+\] ", "", f["text"])
+                st.markdown(f"- **{label(f['fact'])}**: {text}")
     st.divider()
     st.header("What moves things forward")
     st.caption("Only things someone can do today. People whose answers unlock the most answers come first; "
@@ -360,9 +351,13 @@ def briefing():
             for a in items:
                 imp = impact_text(a)
                 need = needed_by(a.facts)
+                above = sorted({k for bl in P["blockers"] if bl["fact"] in a.facts
+                                for c in bl["chains"] for k in c.split(" → ")[:-1]})
                 st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}"
                             + (f"  \n  :green[{imp}]" if imp else "")
-                            + (f"  \n  :gray[Answers it feeds: {need}]" if need else ""))
+                            + (f"  \n  :gray[Answers it feeds: {need}]" if need else "")
+                            + (f"  \n  :red[Root blocker: {', '.join(above)} cannot move until this is settled]"
+                               if above else ""))
             msg = batch_message(who, items, S)
             st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
             if st.button(f"I sent this to {who}", key=f"ask-{who}",
