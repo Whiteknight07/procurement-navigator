@@ -216,9 +216,10 @@ def resolve_fact(f: Fact, claims: list[Claim], as_of: date, labels: dict[tuple, 
             f.warnings.append(f"Expires {end:%b %d, %Y}; start renewal now.")
     if w.note:
         f.warnings.append(w.note)
-    # equally trusted, compatible detail is a caveat Jai must see ("2026 audit not yet final")
+    # equally trusted, compatible detail is a caveat Jai must see ("2026 audit not yet final"). The model
+    # labels this pair "adds_detail" or "different_aspect" from run to run, so both count.
     f.warnings += [f"Also on file: {c.value}" for c in usable[1:] if c.tier == w.tier
-                   and labels.get((w.id, c.id)) == "adds_detail" and not superseded(c, w, as_of)]
+                   and labels.get((w.id, c.id)) in ("adds_detail", "different_aspect") and not superseded(c, w, as_of)]
     return f
 
 
