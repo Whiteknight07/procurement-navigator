@@ -1,0 +1,8 @@
+id,section,question,draft_answer,status,note
+Q-004,Privacy,"Restating retention: for source files, prompts, responses and application logs, state the retention period by data type. Also describe how a customer deletion request is handled and how long deletion takes.",,OPEN,
+Q-007,Security,"Provide your current SOC 2 Type II report. If your 2026 audit has completed, provide the 2026 report instead of 2025.",,OPEN,
+Q-009,Security,"Describe encryption, IAM and privileged production access.",,OPEN,
+Q-012,AI Risk,"Describe how the AI system is monitored in production, including quality drift and incident detection.",,OPEN,
+Q-021,Procurement,"The certificate of insurance on file has expired. Provide a current certificate showing Cyber / Technology E&O coverage and its new expiry date.",,OPEN,
+Q-061,Privacy,"If the pilot uses real customer-support transcripts, list the personal-information categories they contain and how they are minimised.",,OPEN,
+Q-062,Resilience,"Provide the date and outcome of your most recent business-continuity or disaster-recovery test.",,OPEN,

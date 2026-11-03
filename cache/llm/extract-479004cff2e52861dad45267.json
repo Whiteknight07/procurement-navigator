@@ -1,0 +1,33 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2089,
+  "completion_tokens": 74,
+  "total_tokens": 2163,
+  "cost": 0.0013581,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 734,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0013581,
+   "upstream_inference_prompt_cost": 0.0009881,
+   "upstream_inference_completions_cost": 0.00037
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 33,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Context on evaluating procurement documents for applicability, freshness, authority, provenance, and customer-specific scope.",
+  "claims": [],
+  "gaps": [],
+  "asks": []
+ }
+}

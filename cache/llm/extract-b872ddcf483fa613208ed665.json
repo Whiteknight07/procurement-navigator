@@ -1,0 +1,82 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2122,
+  "completion_tokens": 525,
+  "total_tokens": 2647,
+  "cost": 0.00364235,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1362,
+   "cache_write_tokens": 757,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00364235,
+   "upstream_inference_prompt_cost": 0.00101735,
+   "upstream_inference_completions_cost": 0.002625
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 198,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "May 2026 generic architecture describes platform capabilities and default application-log retention, not Northstar's pilot configuration.",
+  "claims": [
+   {
+    "fact": "model_providers",
+    "value": "Multiple providers supported",
+    "quote": "Multiple model providers supported.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": "2026-05-01",
+    "valid_until": null,
+    "note": "No providers named; not specific to Northstar."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Read/write business-tool connectors supported",
+    "quote": "Read/write business-tool connectors supported.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": "2026-05-01",
+    "valid_until": null,
+    "note": "Not specific to Northstar."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Workflow actions may execute after policy checks",
+    "quote": "Workflow actions may execute after policy checks.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": "2026-05-01",
+    "valid_until": null,
+    "note": "Not specific to Northstar."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "30 days by default",
+    "quote": "Application logs default 30 days.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": "2026-05-01",
+    "valid_until": null,
+    "note": "Not specific to Northstar."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

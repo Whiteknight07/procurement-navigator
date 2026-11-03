@@ -1,0 +1,130 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2100,
+  "completion_tokens": 1002,
+  "total_tokens": 3102,
+  "cost": 0.00601185,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 745,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00601185,
+   "upstream_inference_prompt_cost": 0.00100185,
+   "upstream_inference_completions_cost": 0.00501
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 210,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Draft Northstar configuration specifies AWS Canada storage, OpenAI as the primary inference provider, read-only pilot connectors, and disabled external actions.",
+  "claims": [
+   {
+    "fact": "storage_location",
+    "value": "AWS Canada",
+    "quote": "AWS Canada persistence.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "model_providers",
+    "value": "OpenAI primary",
+    "quote": "OpenAI primary inference.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Disabled unless customer approves",
+    "quote": "Secondary provider disabled unless customer approves.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "service_description",
+    "value": "Retrieval over internal network-support documents",
+    "quote": "Retrieval over internal network-support documents.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Pilot connectors allowlisted and read-only",
+    "quote": "Pilot connectors are allowlisted and read-only.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "External actions disabled",
+    "quote": "External actions disabled.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "retention_source_files",
+    "value": "Workspace lifetime unless custom deletion configured",
+    "quote": "Source files retained for workspace lifetime unless custom deletion configured.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "App logs intended 14 days.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Intended duration in draft configuration."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

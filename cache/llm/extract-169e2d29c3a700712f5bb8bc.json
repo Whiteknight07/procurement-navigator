@@ -1,0 +1,46 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2084,
+  "completion_tokens": 246,
+  "total_tokens": 2330,
+  "cost": 0.00221185,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 729,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00221185,
+   "upstream_inference_prompt_cost": 0.00098185,
+   "upstream_inference_completions_cost": 0.00123
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 83,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Final SOC 2 Type II report for January 1\u2013September 30, 2026, issued October 28, 2026, with no exceptions noted.",
+  "claims": [
+   {
+    "fact": "soc2",
+    "value": "SOC 2 Type II, Jan 1\u2013Sep 30, 2026, final",
+    "quote": "SOC 2 Type II report, audit period Jan 1 - Sep 30, 2026: FINAL.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-09-30",
+    "valid_until": null,
+    "note": "Report issued October 28, 2026; no exceptions noted."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

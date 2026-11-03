@@ -1,0 +1,46 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2078,
+  "completion_tokens": 433,
+  "total_tokens": 2511,
+  "cost": 0.00313935,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 723,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00313935,
+   "upstream_inference_prompt_cost": 0.00097435,
+   "upstream_inference_completions_cost": 0.002165
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 264,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Current Cyber / Technology E&O insurance coverage is CAD 5,000,000, with a policy period ending October 1, 2027.",
+  "claims": [
+   {
+    "fact": "insurance",
+    "value": "Cyber / Technology E&O, CAD 5,000,000",
+    "quote": "Certificate of insurance: Cyber / Technology E&O, CAD 5,000,000. Policy period Oct 1, 2026 to Oct 1, 2027. Current.",
+    "speaker": "Sam",
+    "speaker_side": "unknown",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-11-06",
+    "valid_until": "2027-10-01",
+    "note": "Policy period began October 1, 2026."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

@@ -1,0 +1,144 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2175,
+  "completion_tokens": 1471,
+  "total_tokens": 3646,
+  "cost": 0.010073,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2172,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.010073,
+   "upstream_inference_prompt_cost": 0.002718,
+   "upstream_inference_completions_cost": 0.007355
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 439,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Internal discussion indicates that Acme\u2019s fallback configuration and DPA dependencies remain unresolved. Penetration-test remediation needs evidence.",
+  "claims": [
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "Anthony: enterprise app logs should be 14d now.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Dev subsequently confirmed app logs, but traces have separate configuration."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "Dev: app logs yes; observability traces have separate configuration.",
+    "speaker": "Dev",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Confirms Anthony\u2019s preceding 14-day app-log statement."
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic fallback enabled globally",
+    "quote": "Anthony: globally yes; for Acme probably disable if residency/legal requires it. Not finalized.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Probably disabled if residency or legal requirements require it; not finalized",
+    "quote": "for Acme probably disable if residency/legal requires it. Not finalized.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "undecided",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Refers to Anthropic fallback."
+   },
+   {
+    "fact": "pen_test",
+    "value": "February 2026 test had 2 medium findings",
+    "quote": "Anthony: Feb pen test had 2 mediums",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": "2026-02-01",
+    "valid_until": null,
+    "note": "The input does not say whether the test was external. Year inferred from context."
+   },
+   {
+    "fact": "pen_test_remediation",
+    "value": "2 medium findings remediated later",
+    "quote": "remediated later, but need evidence.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Remediation evidence is needed."
+   },
+   {
+    "fact": "dpa_status",
+    "value": "Blocked until subprocessors and cross-border transfers are confirmed",
+    "quote": "Legal: DPA blocked until subprocessors and cross-border transfers are confirmed.",
+    "speaker": "Legal",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "fallback_routing",
+    "quote": "for Acme probably disable if residency/legal requires it. Not finalized.",
+    "note": "Acme\u2019s fallback configuration is undecided."
+   },
+   {
+    "fact": "pen_test_remediation",
+    "quote": "remediated later, but need evidence.",
+    "note": "Evidence of remediation is missing."
+   },
+   {
+    "fact": "subprocessors",
+    "quote": "DPA blocked until subprocessors and cross-border transfers are confirmed.",
+    "note": "Subprocessors require confirmation."
+   },
+   {
+    "fact": "cross_border_transfers",
+    "quote": "DPA blocked until subprocessors and cross-border transfers are confirmed.",
+    "note": "Cross-border transfers require confirmation."
+   },
+   {
+    "fact": "model_providers",
+    "quote": "Jai: can we just say OpenAI?\nLegal: please don't guess in customer paperwork.",
+    "note": "The exchange does not confirm OpenAI as Acme\u2019s model provider."
+   }
+  ],
+  "asks": []
+ }
+}

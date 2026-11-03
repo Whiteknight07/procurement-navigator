@@ -1,0 +1,41 @@
+{
+ "task": "check",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 225,
+  "completion_tokens": 109,
+  "total_tokens": 334,
+  "cost": 0.00077,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00077,
+   "upstream_inference_prompt_cost": 0.000225,
+   "upstream_inference_completions_cost": 0.000545
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 40,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "results": [
+   {
+    "n": 1,
+    "label": "supported",
+    "why": "The quote states that the January\u2013December 2025 SOC 2 Type II is final."
+   },
+   {
+    "n": 2,
+    "label": "supported",
+    "why": "The quote explicitly says the 2026 audit is not yet final."
+   }
+  ]
+ }
+}

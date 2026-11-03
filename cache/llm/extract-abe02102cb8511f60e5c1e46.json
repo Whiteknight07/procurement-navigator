@@ -1,0 +1,46 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2065,
+  "completion_tokens": 234,
+  "total_tokens": 2299,
+  "cost": 0.0037505,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2062,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0037505,
+   "upstream_inference_prompt_cost": 0.0025805,
+   "upstream_inference_completions_cost": 0.00117
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 82,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Lantern AI Technologies has CAD 5,000,000 in Cyber / Technology E&O coverage. The current certificate expires October 1, 2026; renewal is pending.",
+  "claims": [
+   {
+    "fact": "insurance",
+    "value": "CAD 5,000,000 Cyber / Technology E&O",
+    "quote": "Cyber / Technology E&O: CAD 5,000,000. Current certificate expires Oct 1, 2026. Renewal pending.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": null,
+    "valid_until": "2026-10-01",
+    "note": "Renewal pending."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

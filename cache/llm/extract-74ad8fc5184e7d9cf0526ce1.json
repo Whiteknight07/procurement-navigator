@@ -1,0 +1,93 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2106,
+  "completion_tokens": 870,
+  "total_tokens": 2976,
+  "cost": 0.00535935,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 751,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00535935,
+   "upstream_inference_prompt_cost": 0.00100935,
+   "upstream_inference_completions_cost": 0.00435
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 321,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Historical Meridian Retail questionnaire context from December 2025; Meridian had a different configuration and contract from Acme.",
+  "claims": [
+   {
+    "fact": "model_providers",
+    "value": "OpenAI, Anthropic",
+    "quote": "Meridian used OpenAI + Anthropic",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2025-12-01",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "30-day log retention",
+    "quote": "30-day logs",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2025-12-01",
+    "valid_until": null,
+    "note": "Log type is not specified."
+   },
+   {
+    "fact": "retention_source_files",
+    "value": "90 days",
+    "quote": "90-day source-file retention",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2025-12-01",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "other",
+    "value": "Data hosted in Canada",
+    "quote": "Questionnaire answer said \"data hosted in Canada\" without distinguishing storage from inference.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2025-12-01",
+    "valid_until": null,
+    "note": "The answer did not distinguish storage from inference."
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "storage_location",
+    "quote": "Questionnaire answer said \"data hosted in Canada\" without distinguishing storage from inference.",
+    "note": "Meridian's storage location is not separately specified."
+   },
+   {
+    "fact": "inference_location",
+    "quote": "Questionnaire answer said \"data hosted in Canada\" without distinguishing storage from inference.",
+    "note": "Meridian's inference location is not separately specified."
+   }
+  ],
+  "asks": []
+ }
+}

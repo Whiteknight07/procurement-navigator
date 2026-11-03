@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 213,
+  "completion_tokens": 113,
+  "total_tokens": 326,
+  "cost": 0.000778,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000778,
+   "upstream_inference_prompt_cost": 0.000213,
+   "upstream_inference_completions_cost": 0.000565
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 74,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "agree",
+  "why": "Both specify a 24-hour RTO and a 24-hour RPO; A states them tentatively."
+ }
+}

@@ -1,0 +1,224 @@
+# The fact catalog: the small set of things procurement questions boil down to.
+# It is about the supplier and its deals in general, never about one customer.
+#
+# level:     company = one value shared by every deal (SOC 2, insurance)
+#            deal    = one value per customer (region, providers, retention)
+# owner:     the team that can confirm it (mapped to a person in people)
+# proof:     document           = needs evidence in the evidence store (mock Vanta)
+#            owner_confirmation = the owning team saying so is enough
+#            customer           = only the customer can say (their requirement or decision)
+# max_age_days: evidence older than this is stale (Jai: a 6-month-old report won't work)
+# depends_on: facts that must be settled before this one can be
+
+facts:
+  # ---------- company level ----------
+  soc2:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: document
+    max_age_days: 365   # counted from the end of the audit period
+    question: Current SOC 2 (or equivalent) report, its type, audit period and whether it is final.
+  pen_test:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: document
+    max_age_days: 183
+    question: Date and findings of the latest external penetration test.
+  pen_test_remediation:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: document
+    question: Whether open penetration-test findings were fixed, with evidence.
+  insurance:
+    level: company
+    track: Procurement
+    owner: Finance
+    proof: document
+    question: Cyber / technology E&O insurance coverage and certificate expiry.
+  encryption:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: owner_confirmation
+    question: Encryption in transit and at rest.
+  iam_privileged_access:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: owner_confirmation
+    question: Identity and access management and privileged production access controls.
+  incident_response:
+    level: company
+    track: Security
+    owner: Engineering
+    proof: owner_confirmation
+    question: Incident response process and customer notification approach.
+  rto_rpo:
+    level: company
+    track: Resilience
+    owner: Engineering
+    proof: document
+    question: Approved recovery time and recovery point objectives (RTO/RPO) with evidence.
+  bcp_dr_testing:
+    level: company
+    track: Resilience
+    owner: Engineering
+    proof: document
+    max_age_days: 365
+    question: Business continuity / disaster recovery plan, and the date and result of the last test.
+  provider_data_use:
+    level: company
+    track: AI Risk
+    owner: Legal
+    proof: owner_confirmation
+    question: Whether model providers may retain or train on customer content.
+  eval_methodology:
+    level: company
+    track: AI Risk
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: How the AI is evaluated, and its known limitations.
+  prompt_injection_controls:
+    level: company
+    track: AI Risk
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: Controls against prompt injection and untrusted documents.
+  provenance_uncertainty:
+    level: company
+    track: AI Risk
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: How outputs show provenance, citations and uncertainty.
+  external_approval_policy:
+    level: company
+    track: Governance
+    owner: Commercial
+    proof: owner_confirmation
+    question: Which responses need human approval before they are sent to a customer.
+
+  # ---------- deal level ----------
+  service_description:
+    level: deal
+    track: Supplier
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: The service proposed to this customer and its intended use.
+  pilot_data_scope:
+    level: deal
+    track: Privacy
+    owner: Customer
+    proof: customer
+    question: Whether the pilot uses synthetic data only or real customer or employee data.
+  personal_info_categories:
+    level: deal
+    track: Privacy
+    owner: Legal
+    proof: owner_confirmation
+    depends_on: [pilot_data_scope]
+    question: Whether personal information is processed, and which categories.
+  residency_requirement:
+    level: deal
+    track: Privacy
+    owner: Customer
+    proof: customer
+    question: Whether the customer requires content to stay in-country during processing (not only storage).
+  storage_location:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    question: Where the supplier stores this customer's data at rest.
+  fallback_routing:
+    level: deal
+    track: AI Risk
+    owner: Engineering
+    proof: owner_confirmation
+    depends_on: [residency_requirement]
+    question: Whether a secondary (fallback) model provider is enabled for this customer.
+  model_providers:
+    level: deal
+    track: AI Risk
+    owner: Engineering
+    proof: owner_confirmation
+    depends_on: [fallback_routing]
+    question: Which model providers process this customer's content.
+  inference_location:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    depends_on: [model_providers]
+    question: Where model inference (processing) happens for this customer, separate from storage.
+  retention_source_files:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    question: How long uploaded source files are kept for this customer.
+  retention_app_logs:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    question: How long application logs are kept for this customer.
+  retention_traces:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    question: Whether observability traces capture payloads, and how long they are kept.
+  retention_prompts_responses:
+    level: deal
+    track: Privacy
+    owner: Engineering
+    proof: owner_confirmation
+    question: How long prompts and model responses are kept for this customer.
+  subprocessors:
+    level: deal
+    track: Privacy
+    owner: Legal
+    proof: owner_confirmation
+    depends_on: [model_providers]
+    question: Subprocessors that may access this customer's content.
+  cross_border_transfers:
+    level: deal
+    track: Privacy
+    owner: Legal
+    proof: owner_confirmation
+    depends_on: [inference_location, subprocessors]
+    question: Whether this customer's content crosses borders, and how.
+  dpa_status:
+    level: deal
+    track: Legal
+    owner: Legal
+    proof: owner_confirmation
+    depends_on: [subprocessors, cross_border_transfers]
+    question: Whether the data processing agreement (DPA) can be completed, and what blocks it.
+  tool_actions:
+    level: deal
+    track: AI Risk
+    owner: Engineering
+    proof: owner_confirmation
+    question: Which tools or APIs the AI can call for this customer, and whether it can take external actions.
+  human_approval_boundaries:
+    level: deal
+    track: AI Risk
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: Which AI actions need a human to approve them for this customer.
+  ai_monitoring:
+    level: deal
+    track: AI Risk
+    owner: AI Engineering
+    proof: owner_confirmation
+    question: How the AI is monitored in production for this customer (quality, drift, incidents).
+  records_management:
+    level: deal
+    track: Records
+    owner: Customer
+    proof: customer
+    question: Whether the customer's Records Management review applies to this deal.

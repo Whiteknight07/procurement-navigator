@@ -1,0 +1,8 @@
+{
+ "deal": "acme",
+ "system": "email",
+ "author": "Elena (Acme Privacy)",
+ "date": "2026-11-04",
+ "title": "Email from Elena: processing location",
+ "text": "Elena, Acme Privacy: Following up on processing location. Acme requires that customer content is not processed outside Canada, including model inference and any fallback provider. Storage in Canada alone is not sufficient."
+}

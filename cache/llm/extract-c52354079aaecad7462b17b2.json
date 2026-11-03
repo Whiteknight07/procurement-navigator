@@ -1,0 +1,136 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2150,
+  "completion_tokens": 839,
+  "total_tokens": 2989,
+  "cost": 0.00524735,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1362,
+   "cache_write_tokens": 785,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00524735,
+   "upstream_inference_prompt_cost": 0.00105235,
+   "upstream_inference_completions_cost": 0.004195
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 236,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Draft proposed Acme deployment configuration; it is not proof of the deployed state. Customer-specific source-file retention remains TBD.",
+  "claims": [
+   {
+    "fact": "storage_location",
+    "value": "AWS ca-central-1",
+    "quote": "AWS ca-central-1 for supplier persistence.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment."
+   },
+   {
+    "fact": "model_providers",
+    "value": "OpenAI primary",
+    "quote": "OpenAI primary inference.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment."
+   },
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic fallback off unless approved",
+    "quote": "Anthropic fallback intended OFF unless approved.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "14 days",
+    "quote": "App logs intended 14 days.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment."
+   },
+   {
+    "fact": "retention_traces",
+    "value": "Payload capture off",
+    "quote": "Observability payload capture intended OFF.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment; trace retention is not specified."
+   },
+   {
+    "fact": "retention_source_files",
+    "value": "Workspace lifetime",
+    "quote": "Source files currently persist for workspace lifetime",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Customer-specific retention remains TBD."
+   },
+   {
+    "fact": "retention_source_files",
+    "value": "TBD",
+    "quote": "customer-specific retention TBD.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "undecided",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "human_approval_boundaries",
+    "value": "Human confirms customer-facing actions",
+    "quote": "Human confirms customer-facing actions.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Draft configuration, not proof of deployment."
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "retention_source_files",
+    "quote": "customer-specific retention TBD.",
+    "note": "Acme-specific source-file retention has not been finalized."
+   }
+  ],
+  "asks": []
+ }
+}

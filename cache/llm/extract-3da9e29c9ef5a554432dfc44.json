@@ -1,0 +1,52 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2113,
+  "completion_tokens": 275,
+  "total_tokens": 2388,
+  "cost": 0.0023931,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 758,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0023931,
+   "upstream_inference_prompt_cost": 0.0010181,
+   "upstream_inference_completions_cost": 0.001375
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 120,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "The working folder identifies Lantern AI\u2019s proposed service for Acme as an AI operations assistant for customer-service workflows. It warns that the folder has no authoritative checklist and contains sources that may not apply to this deal.",
+  "claims": [
+   {
+    "fact": "service_description",
+    "value": "AI operations assistant for customer-service workflows",
+    "quote": "Service: AI operations assistant for customer-service workflows",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "other",
+    "quote": "There is no authoritative checklist.",
+    "note": "The working folder lacks an authoritative onboarding checklist."
+   }
+  ],
+  "asks": []
+ }
+}

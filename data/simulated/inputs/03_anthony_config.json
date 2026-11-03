@@ -1,0 +1,8 @@
+{
+ "deal": "acme",
+ "system": "slack",
+ "author": "Anthony",
+ "date": "2026-11-04",
+ "title": "Slack from Anthony: Acme deployed config",
+ "text": "Anthony: Checked the Acme deployment config. App logs are 14 days. Observability payload capture is off for Acme. Storage is AWS ca-central-1. Anthropic fallback is disabled for Acme, so OpenAI is the only model provider."
+}

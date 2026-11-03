@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 199,
+  "completion_tokens": 72,
+  "total_tokens": 271,
+  "cost": 0.000559,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000559,
+   "upstream_inference_prompt_cost": 0.000199,
+   "upstream_inference_completions_cost": 0.00036
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 31,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "adds_detail",
+  "why": "Both refer to two Medium findings; B adds that they were remediated later, though evidence is still needed."
+ }
+}

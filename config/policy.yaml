@@ -1,0 +1,38 @@
+# Rules Jai can edit. Defaults chosen from the case and from talking to Jai.
+
+as_of: 2026-11-03          # "today"; move it to see deadlines and expiry change
+
+# Trust tiers: lower wins. A claim's tier comes from where it was said and how.
+tiers:
+  evidence: 1              # a document in the evidence store (mock Vanta)
+  customer_statement: 1    # the customer stating its own requirement or decision
+  owner_confirmation: 2    # the owning team states it as current fact
+  deal_document: 3         # a document written for this customer (often a draft plan)
+  internal_chat: 4         # Slack or chat from someone else, or not stated as settled
+  questionnaire_draft: 5   # a draft answer already sitting in the questionnaire (origin unknown)
+  generic_document: 5      # describes the product in general, not this customer
+  other_customer: 9        # another customer's answers: a hint only, never the answer
+
+# How soon an expiring item becomes a warning.
+expiry_warning_days: 45
+
+# How long each person usually takes to reply, in business days (from ownership.csv response_pattern,
+# confirmed with Jai). Used to decide when a wait is overdue and to send slow asks first.
+reply_days:
+  Jai: 0.5
+  Parsa: 1
+  Anthony: 3
+  Mina: 3
+  Sam: 1
+  Customer Procurement: 2
+  Customer Risk Teams: 5
+  default: 2
+
+# Which person answers for which team.
+team_owner:
+  Commercial: Jai
+  AI Engineering: Parsa
+  Engineering: Anthony
+  Legal: Mina
+  Finance: Sam
+  Customer: Customer Risk Teams

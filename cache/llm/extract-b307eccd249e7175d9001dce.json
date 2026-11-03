@@ -1,0 +1,64 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2061,
+  "completion_tokens": 345,
+  "total_tokens": 2406,
+  "cost": 0.0026781,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 706,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0026781,
+   "upstream_inference_prompt_cost": 0.0009531,
+   "upstream_inference_completions_cost": 0.001725
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 132,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "The 2025 SOC 2 Type II report is final; the 2026 audit is not yet final.",
+  "claims": [
+   {
+    "fact": "soc2",
+    "value": "SOC 2 Type II, Jan\u2013Dec 2025, final",
+    "quote": "SOC 2 Type II, Jan-Dec 2025: FINAL.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2025-12-31",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "soc2",
+    "value": "2026 audit not yet final",
+    "quote": "2026 audit is not yet final.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "soc2",
+    "quote": "2026 audit is not yet final.",
+    "note": "The 2026 audit is not final."
+   }
+  ],
+  "asks": []
+ }
+}

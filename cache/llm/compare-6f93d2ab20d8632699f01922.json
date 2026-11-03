@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 188,
+  "completion_tokens": 78,
+  "total_tokens": 266,
+  "cost": 0.000578,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000578,
+   "upstream_inference_prompt_cost": 0.000188,
+   "upstream_inference_completions_cost": 0.00039
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 46,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "conflicts",
+  "why": "The stated retention periods differ: 30 days versus 14 days."
+ }
+}

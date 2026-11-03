@@ -1,0 +1,46 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2063,
+  "completion_tokens": 285,
+  "total_tokens": 2348,
+  "cost": 0.0023806,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 708,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0023806,
+   "upstream_inference_prompt_cost": 0.0009556,
+   "upstream_inference_completions_cost": 0.001425
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 137,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Anthony states that the 2026 SOC 2 Type II report is final and was signed off by auditors last week.",
+  "claims": [
+   {
+    "fact": "soc2",
+    "value": "2026 SOC 2 Type II report final",
+    "quote": "The 2026 SOC 2 Type II report is final, auditors signed off last week.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Auditor sign-off was reported as last week in a message dated 2026-11-05; the audit period is not specified."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

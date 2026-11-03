@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 179,
+  "completion_tokens": 130,
+  "total_tokens": 309,
+  "cost": 0.000829,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000829,
+   "upstream_inference_prompt_cost": 0.000179,
+   "upstream_inference_completions_cost": 0.00065
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 92,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "adds_detail",
+  "why": "Both identify OpenAI; A specifies it is the only provider, while B describes it as primary."
+ }
+}

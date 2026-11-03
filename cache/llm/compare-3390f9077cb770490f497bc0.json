@@ -1,0 +1,31 @@
+{
+ "task": "compare",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 184,
+  "completion_tokens": 156,
+  "total_tokens": 340,
+  "cost": 0.000964,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.000964,
+   "upstream_inference_prompt_cost": 0.000184,
+   "upstream_inference_completions_cost": 0.00078
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 115,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "label": "adds_detail",
+  "why": "A names OpenAI and tentatively Anthropic; B only says multiple providers are supported, without confirming their use."
+ }
+}

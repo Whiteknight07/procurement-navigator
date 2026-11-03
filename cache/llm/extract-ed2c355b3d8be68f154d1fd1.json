@@ -1,0 +1,183 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2142,
+  "completion_tokens": 1268,
+  "total_tokens": 3410,
+  "cost": 0.00738235,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1362,
+   "cache_write_tokens": 777,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00738235,
+   "upstream_inference_prompt_cost": 0.00104235,
+   "upstream_inference_completions_cost": 0.00634
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 248,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "General guidance identifies common Security and AI review topics and notes that procurement intake is not approval.",
+  "claims": [
+   {
+    "fact": "other",
+    "value": "Procurement intake does not equal approval",
+    "quote": "Procurement intake itself does not equal approval.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "General guidance, not a statement about a particular customer."
+   }
+  ],
+  "gaps": [],
+  "asks": [
+   {
+    "text": "Provide assurance.",
+    "quote": "Security reviews may request assurance",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Provide penetration testing information.",
+    "quote": "pen testing",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe encryption.",
+    "quote": "encryption",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe identity and access management.",
+    "quote": "IAM",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe incident response.",
+    "quote": "incident response",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe business continuity and disaster recovery.",
+    "quote": "BCP/DR",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe data flows.",
+    "quote": "data flows",
+    "who": null,
+    "track": "Security",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe the AI use case.",
+    "quote": "use case",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Identify models and providers.",
+    "quote": "models/providers",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe the data used.",
+    "quote": "data",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe human oversight.",
+    "quote": "human oversight",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI evaluations.",
+    "quote": "evaluations",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI limitations.",
+    "quote": "limitations",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI monitoring.",
+    "quote": "monitoring",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe tool and action controls.",
+    "quote": "tool/action controls",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Describe AI incidents.",
+    "quote": "incidents",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   },
+   {
+    "text": "Address the customer's specific use and configuration.",
+    "quote": "Customer-specific use/configuration matters.",
+    "who": null,
+    "track": "AI Risk",
+    "kind": "predicted",
+    "due_date": null
+   }
+  ]
+ }
+}

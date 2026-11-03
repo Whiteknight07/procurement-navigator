@@ -1,0 +1,33 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2091,
+  "completion_tokens": 108,
+  "total_tokens": 2199,
+  "cost": 0.0015306,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 736,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0015306,
+   "upstream_inference_prompt_cost": 0.0009906,
+   "upstream_inference_completions_cost": 0.00054
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 63,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Platform capabilities and prior customer answers may not reflect a new deal; newer internal messages may require verification before external submission.",
+  "claims": [],
+  "gaps": [],
+  "asks": []
+ }
+}

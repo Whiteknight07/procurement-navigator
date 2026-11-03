@@ -1,0 +1,94 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2130,
+  "completion_tokens": 772,
+  "total_tokens": 2902,
+  "cost": 0.00488735,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1362,
+   "cache_write_tokens": 765,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00488735,
+   "upstream_inference_prompt_cost": 0.00102735,
+   "upstream_inference_completions_cost": 0.00386
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 217,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "January 2026 answers for BluePeak Insurance, not Northstar; several are customer-specific contractual terms.",
+  "claims": [
+   {
+    "fact": "fallback_routing",
+    "value": "Anthropic fallback enabled",
+    "quote": "BluePeak enabled Anthropic fallback",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "model_providers",
+    "value": "Anthropic as fallback",
+    "quote": "BluePeak enabled Anthropic fallback",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "Enabled as fallback; actual use is not stated."
+   },
+   {
+    "fact": "retention_app_logs",
+    "value": "30 days",
+    "quote": "30-day logs",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "The type of logs is not specified."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Write-enabled CRM connector",
+    "quote": "a write-enabled CRM connector",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "rto_rpo",
+    "value": "24-hour RTO and RPO commitments",
+    "quote": "customer-specific 24h RTO/RPO commitments",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "other_customer",
+    "assertion": "stated",
+    "as_of_date": "2026-01-01",
+    "valid_until": null,
+    "note": "Customer-specific commitments, not company-wide objectives."
+   }
+  ],
+  "gaps": [],
+  "asks": []
+ }
+}

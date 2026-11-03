@@ -1,0 +1,31 @@
+# Each deal is a folder of inputs. Mock connectors map each sub-folder to the system it would come from.
+deals:
+  acme:
+    name: Acme National Bank
+    industry: Banking
+    folder: data/cases/acme
+    questionnaire_rounds:
+      - {file: 02_questionnaires/vendor_risk_questionnaire.csv, round: 1, date: 2026-09-14}
+  northstar:
+    name: Northstar Telecom
+    industry: Telecommunications
+    folder: data/cases/northstar
+    questionnaire_rounds:
+      - {file: 02_questionnaires/vendor_risk_questionnaire.csv, round: 1}
+
+# Dates written without a year (e.g. "Sep 14") are in this year. A real email connector has timestamps.
+context_year: 2026
+
+# Sources about the whole company (shared by every deal).
+company_folder: data/company
+
+# folder prefix -> system it would arrive from
+connectors:
+  00_START_HERE: drive
+  01_customer: email
+  03_internal: slack
+  04_knowledge: drive
+  05_evidence: vanta
+  06_reference: drive
+  07_people: directory
+  08_context_to_filter: drive

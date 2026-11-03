@@ -1,0 +1,93 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2104,
+  "completion_tokens": 1004,
+  "total_tokens": 3108,
+  "cost": 0.00602685,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1352,
+   "cache_write_tokens": 749,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00602685,
+   "upstream_inference_prompt_cost": 0.00100685,
+   "upstream_inference_completions_cost": 0.00502
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 418,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "Internal discussion notes a November launch target, Canadian AWS persistence, workspace-specific connector permissions, and a need to verify trace redaction. The old subprocessor list is not approved for external use.",
+  "claims": [
+   {
+    "fact": "other",
+    "value": "November 2026 launch target",
+    "quote": "Jai: customer wants November launch.",
+    "speaker": "Jai",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Customer preference reported internally; year comes from metadata."
+   },
+   {
+    "fact": "storage_location",
+    "value": "AWS, Canada",
+    "quote": "Anthony: AWS persistence is Canada",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Customer-specific configuration is not explicitly confirmed; inference geography is separate."
+   },
+   {
+    "fact": "tool_actions",
+    "value": "Connector permissions are workspace-specific",
+    "quote": "Dev: connector permissions are workspace-specific.",
+    "speaker": "Dev",
+    "speaker_side": "supplier",
+    "applies_to": "generic_platform",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "The pilot's specific permissions are not stated."
+   },
+   {
+    "fact": "retention_traces",
+    "value": "Payloads should be redacted from traces",
+    "quote": "Anthony: traces should redact payloads, but verify actual deployment.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "planned",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Actual deployment needs verification; trace retention is not stated."
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "subprocessors",
+    "quote": "Legal: old subprocessor list is not approved for external use.",
+    "note": "The old list cannot be used externally; this does not establish whether a newer approved list exists."
+   },
+   {
+    "fact": "retention_traces",
+    "quote": "Anthony: traces should redact payloads, but verify actual deployment.",
+    "note": "Actual trace payload redaction is unverified."
+   }
+  ],
+  "asks": []
+ }
+}

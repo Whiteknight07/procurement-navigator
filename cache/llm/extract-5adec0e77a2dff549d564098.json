@@ -1,0 +1,64 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2123,
+  "completion_tokens": 483,
+  "total_tokens": 2606,
+  "cost": 0.0034336,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1362,
+   "cache_write_tokens": 758,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0034336,
+   "upstream_inference_prompt_cost": 0.0010186,
+   "upstream_inference_completions_cost": 0.002415
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 110,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "summary": "A February 2026 external penetration test found no Critical or High findings and two Medium findings. The Medium findings were open in the original report; this file contains no remediation evidence.",
+  "claims": [
+   {
+    "fact": "pen_test",
+    "value": "Feb 2026; no Critical or High findings; two Medium findings: internal service-token scope, rate-limit bypass under retry pattern",
+    "quote": "External penetration test - Feb 2026.\nNo Critical or High findings. Two Medium findings were OPEN in the original report:\nM-01 internal service-token scope; M-02 rate-limit bypass under retry pattern.",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-02-01",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "pen_test_remediation",
+    "value": "Two Medium findings open in the original report",
+    "quote": "Two Medium findings were OPEN in the original report:",
+    "speaker": null,
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-02-01",
+    "valid_until": null,
+    "note": "Current remediation status is not established."
+   }
+  ],
+  "gaps": [
+   {
+    "fact": "pen_test_remediation",
+    "quote": "This file contains no remediation evidence.",
+    "note": "No evidence that the two Medium findings were fixed."
+   }
+  ],
+  "asks": []
+ }
+}

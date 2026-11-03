@@ -1,0 +1,96 @@
+{
+ "task": "match",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 3052,
+  "completion_tokens": 1183,
+  "total_tokens": 4235,
+  "cost": 0.00972925,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 3049,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00972925,
+   "upstream_inference_prompt_cost": 0.00381425,
+   "upstream_inference_completions_cost": 0.005915
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 796,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "matches": [
+   {
+    "ask_id": "acme:R2:Q-004",
+    "relation": "repeat",
+    "requirement_id": "acme:R-04",
+    "added_part": "",
+    "facts": [],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-007",
+    "relation": "changed",
+    "requirement_id": "acme:R-07",
+    "added_part": "Specifies a SOC 2 Type II report and requests the 2026 report instead of 2025 if the 2026 audit is complete.",
+    "facts": [
+     "soc2"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-009",
+    "relation": "repeat",
+    "requirement_id": "acme:R-09",
+    "added_part": "",
+    "facts": [],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-012",
+    "relation": "repeat_with_addition",
+    "requirement_id": "acme:R-32",
+    "added_part": "Include monitoring for quality drift and incident detection.",
+    "facts": [
+     "ai_monitoring"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-021",
+    "relation": "changed",
+    "requirement_id": "acme:R-21",
+    "added_part": "Replace the expired certificate with a current certificate showing Cyber / Technology E&O coverage and its new expiry date.",
+    "facts": [
+     "insurance"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-061",
+    "relation": "repeat_with_addition",
+    "requirement_id": "acme:R-02",
+    "added_part": "Explain how personal information in real customer-support transcripts is minimised.",
+    "facts": [
+     "pilot_data_scope",
+     "personal_info_categories"
+    ],
+    "title": ""
+   },
+   {
+    "ask_id": "acme:R2:Q-062",
+    "relation": "changed",
+    "requirement_id": "acme:R-30",
+    "added_part": "Request the date and outcome of the most recent business-continuity or disaster-recovery test rather than a description of arrangements.",
+    "facts": [],
+    "title": ""
+   }
+  ]
+ }
+}
