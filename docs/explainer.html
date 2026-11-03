@@ -310,11 +310,15 @@ main{min-width:0}
     </div>
 
     <div class="panel" role="tabpanel">
-      <h3>The customer asks, in two places</h3>
-      <p>Acme's questionnaire row Q-004 says <q class="quote">State retention for source files, prompts, responses, logs and traces.</q> Separately, Elena from Acme Privacy writes in an email asking to clarify <q class="quote">retention by data type</q>.</p>
-      <div class="verdict" style="--c:var(--model)"><b>The model merges them</b><br>Both asks become one requirement, <code>acme:Q-004</code> <q>Retention by data type</q>, with Acme's reading attached: <q class="quote">Acme wants retention broken down by data type for its configuration.</q></div>
-      <p>It needs four facts from the catalog: retention of source files, prompts and responses, app logs, and traces. We follow one: <b>app logs</b>.</p>
-      <p class="src">The questionnaire row was parsed by code, not the model. The email ask was extracted by the model, and code checked that the quote really is in the email.</p>
+      <h3>The customer asks for the same thing in two places</h3>
+      <p>Acme's questionnaire row Q-004 says <q class="quote">State retention for source files, prompts, responses, logs and traces.</q> Separately, Elena from Acme Privacy writes in an email asking to clarify <q class="quote">retention by data type</q>. Both mean: tell us how long you keep each kind of data.</p>
+      <div class="grid2" style="margin:12px 0">
+        <div class="verdict" style="--c:var(--red);margin:0"><b>If we kept them apart</b><br>Jai gets two to-dos for one need, may answer it twice with two different numbers, and cannot tell when the need is really covered. Elena's "by data type" gets lost.</div>
+        <div class="verdict" style="--c:var(--ok);margin:0"><b>So we merge them</b><br>One requirement, <code>acme:Q-004</code> <q>Retention by data type</q>, answered once. Elena's wording is kept as how Acme reads the question: <q class="quote">Acme wants retention broken down by data type.</q></div>
+      </div>
+      <p><b>Who decides:</b> the model, in one call per deal. It sees every ask from that customer (questionnaire rows, email sentences, predicted topics) and groups the ones that are the same need. Code then checks that every ask landed in exactly one requirement and that the model used only ids and facts it was shown. Jai can see which asks went into each requirement on the Deal screen.</p>
+      <p><b>Then what:</b> the requirement lists the facts an answer needs. For Q-004 there are four: retention of source files, prompts and responses, app logs, and traces. Each fact gets its own status (next steps). When all four are verified, the requirement is ready and Jai sends one answer that covers both places. We follow one fact: <b>app logs</b>.</p>
+      <p class="src">The questionnaire row was read by code, not the model. The email ask was pulled out by the model, and code checked that the quote really is in the email.</p>
     </div>
 
     <div class="panel" role="tabpanel">
