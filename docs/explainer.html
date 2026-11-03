@@ -323,10 +323,10 @@ main{min-width:0}
 
     <div class="panel" role="tabpanel">
       <h3>What we have on file about app-log retention</h3>
-      <p>A <b>claim</b> is what one source says: one quote, from one place. The <b>fact</b> is the thing we want to know, Acme's app-log retention. Here, four claims about one fact, with two different values. Keeping them apart is what lets the system show disagreement instead of picking one.</p>
-      <p>Each claim gets a <b>trust tier</b> from where it came from and how it was said: <b>Evidence</b> (Vanta, or the customer's own words), <b>Owner</b> (the owning person saying it as settled), <b>Plan</b> (a draft or non-owner chat: what was intended, not proof it is live), and <b>Hint</b> (a generic doc, another customer, a typed-in draft: shown, never the answer). More in chapter 6.</p>
+      <p>A <b>statement</b> is what one source says: one quote, from one place. The <b>question</b> is the thing we want to know, Acme's app-log retention. Here, four statements about one question, with two different values. Keeping them apart is what lets the system show disagreement instead of picking one.</p>
+      <p>None of these settles it. Retention is settled by the owner (Engineering) saying so, and nobody here is the owner talking about Acme. The kind of source matters: a <b>plan</b> is what was intended, not proof it is live; a <b>hint</b> (a generic doc, another customer, a typed-in draft) is shown but never the answer. More in chapter 6.</p>
       <table class="claims">
-        <tr><th>Tier</th><th>Says</th><th>Quote</th><th>Where it came from</th></tr>
+        <tr><th>Kind</th><th>Says</th><th>Quote</th><th>Where it came from</th></tr>
         <tr><td><span class="tier">Plan</span></td><td>14 days</td><td class="quote">App logs intended 14 days.</td><td class="src">Acme draft configuration (a plan, not proof it is live)</td></tr>
         <tr><td><span class="tier t4">Hint</span></td><td>14 days</td><td class="quote">enterprise app logs should be 14d now.</td><td class="src">Anthony on Slack; the model read it as about the platform in general, not Acme</td></tr>
         <tr><td><span class="tier t4">Hint</span></td><td>30 days</td><td class="quote">Standard application logs: 30 days.</td><td class="src">An older generic product doc</td></tr>
@@ -338,7 +338,7 @@ main{min-width:0}
     <div class="panel" role="tabpanel">
       <h3>Code decides the status</h3>
       <div class="verdict" style="--c:var(--amber)"><b><span class="st unconfirmed">Unconfirmed</span>, best value 14 days</b><br>Best source is a document for this deal (a plan, not proof it is live); the owner (Engineering) has not confirmed it.</div>
-      <p>The catalog says app-log retention is proven by the owning team saying so. A plan is not enough, so the fact stays unconfirmed.</p>
+      <p>The catalog says app-log retention is settled by the owning team saying so. A plan is not enough, so it is not a fact yet.</p>
       <div class="verdict" style="--c:var(--red)"><b>And a warning about the draft answer</b><br>Questionnaire draft <q>30 days?</q> disagrees with the best source (<q>14 days</q>); it matches the generic product doc.</div>
       <p>Without this, someone could have sent Acme the old 30-day figure from a generic document.</p>
     </div>
@@ -353,9 +353,9 @@ main{min-width:0}
     <div class="panel" role="tabpanel">
       <h3>New information arrives</h3>
       <p>On 4 November Anthony replies on Slack: <q class="quote">Checked the Acme deployment config. App logs are 14 days. Observability payload capture is off for Acme. Storage is AWS ca-central-1. Anthropic fallback is disabled for Acme, so OpenAI is the only model provider.</q></p>
-      <p>The system extracts one new claim per fact. This time the speaker is the owner, speaking about Acme, as settled fact.</p>
-      <div class="verdict" style="--c:var(--ok)"><b><span class="st unconfirmed">Unconfirmed</span> to <span class="st verified">Verified</span>, 14 days</b><br>Settled by the owner (Engineering) stating it. Quote: <q class="quote">App logs are 14 days.</q></div>
-      <p class="mut small">The same message also verifies storage, fallback routing, model providers and traces. Five facts, one rebuild.</p>
+      <p>The system extracts one new statement per question. This time the speaker is the owner, speaking about Acme, saying it as settled.</p>
+      <div class="verdict" style="--c:var(--ok)"><b><span class="st unconfirmed">Unconfirmed</span> to <span class="st verified">Fact</span>, 14 days</b><br>Settled by the owner (Engineering) stating it. Quote: <q class="quote">App logs are 14 days.</q></div>
+      <p class="mut small">The same message also verifies storage, fallback routing, model providers and traces. Five new facts, one rebuild.</p>
     </div>
 
     <div class="panel" role="tabpanel">
@@ -377,14 +377,14 @@ main{min-width:0}
   <p class="small" style="display:flex;gap:18px;flex-wrap:wrap"><span><i class="who" style="--c:var(--model)"></i>The model reads, code checks it</span><span><i class="who" style="--c:var(--code)"></i>Code decides</span><span><i class="who" style="--c:var(--jai)"></i>Jai approves</span></p>
   <div class="pipe">
     <div class="pstep" style="--c:var(--code)"><span class="n">1</span><span class="nm">Load<small>Code</small></span><span class="d">Read every folder and the inbox into sources. Identical files across deals become one company source.</span><span class="out">22<small>sources</small></span></div>
-    <div class="pstep" style="--c:var(--model)"><span class="n">2</span><span class="nm">Extract<small>Model, then code</small></span><span class="d">One call per source: claims (fact, value, exact quote, speaker, whether it is evidence, a statement, a plan or undecided) and customer asks. Code drops any quote not found in the source and any fact not in the catalog. Questionnaire rows are parsed by code.</span><span class="out">67<small>claims, 0 quotes dropped</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">2</span><span class="nm">Extract<small>Model, then code</small></span><span class="d">One call per source: statements (question, value, exact quote, speaker, whether it is evidence, a statement, a plan or undecided) and customer asks. Code drops any quote not found in the source and any fact not in the catalog. Questionnaire rows are parsed by code.</span><span class="out">67<small>claims, 0 quotes dropped</small></span></div>
     <div class="pstep" style="--c:var(--model)"><span class="n">3</span><span class="nm">Merge and match<small>Model, then code</small></span><span class="d">All of a deal's asks become requirements, each linked to the facts it needs. Later rounds are matched by meaning. Code rejects ids the model was not shown, finds placeholder rows and flags reused question numbers.</span><span class="out">184 &rarr; 68<small>asks to requirements</small></span></div>
-    <div class="pstep" style="--c:var(--model)"><span class="n">4</span><span class="nm">Compare<small>Model, one label</small></span><span class="d">For two claims about one fact: agree, adds detail, conflicts, or different aspect. Identical values skip the model.</span><span class="out">pairs<small>only where needed</small></span></div>
-    <div class="pstep" style="--c:var(--code)"><span class="n">5</span><span class="nm">Resolve<small>Code</small></span><span class="d">Trust tier, proof type, age limit, conflicts and dependencies give each fact one status and a reason in plain words.
-      <div class="bar" aria-label="52 facts by status"><span style="--c:var(--ok);flex:5"></span><span style="--c:var(--amber);flex:13"></span><span style="--c:var(--red);flex:1"></span><span style="--c:var(--vio);flex:5"></span><span style="--c:var(--red);flex:2;opacity:.6"></span><span style="--c:var(--grey);flex:26"></span></div>
-      <span class="barkey small"><span class="st verified">5 verified</span><span class="st unconfirmed">13 unconfirmed</span><span class="st conflicting">1 conflicting</span><span class="st undecided">5 undecided</span><span class="st out_of_date">2 out of date</span><span class="st unknown">26 unknown</span></span></span><span class="out">52<small>facts</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">4</span><span class="nm">Compare<small>Model, one label</small></span><span class="d">For two statements about one question: agree, adds detail, conflicts, or different aspect. Identical values skip the model.</span><span class="out">pairs<small>only where needed</small></span></div>
+    <div class="pstep" style="--c:var(--code)"><span class="n">5</span><span class="nm">Resolve<small>Code</small></span><span class="d">Whose word counts, what settles it, age limits, conflicts and dependencies give each question one status and a reason in plain words.
+      <div class="bar" aria-label="52 questions by status"><span style="--c:var(--ok);flex:5"></span><span style="--c:var(--amber);flex:13"></span><span style="--c:var(--red);flex:1"></span><span style="--c:var(--vio);flex:5"></span><span style="--c:var(--red);flex:2;opacity:.6"></span><span style="--c:var(--grey);flex:26"></span></div>
+      <span class="barkey small"><span class="st verified">5 facts</span><span class="st unconfirmed">13 unconfirmed</span><span class="st conflicting">1 conflicting</span><span class="st undecided">5 undecided</span><span class="st out_of_date">2 out of date</span><span class="st unknown">26 unknown</span></span></span><span class="out">52<small>facts</small></span></div>
     <div class="pstep" style="--c:var(--code)"><span class="n">6</span><span class="nm">Plan<small>Code</small></span><span class="d">Actions only where work can start, ranked by how many answers wait on them. One message per person, waits, delays, answers at risk and updates owed.</span><span class="out">Monday<small>briefing</small></span></div>
-    <div class="pstep" style="--c:var(--model)"><span class="n">7</span><span class="nm">Draft and check<small>Model, then code</small></span><span class="d">On request, the model writes an answer from verified facts, citing claim ids. Code blocks approval if any sentence breaks the rules.</span><span class="out">draft<small>with citations</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">7</span><span class="nm">Draft and check<small>Model, then code</small></span><span class="d">On request, the model writes an answer from facts only, citing statement ids. Code blocks approval if any sentence breaks the rules.</span><span class="out">draft<small>with citations</small></span></div>
     <div class="pstep" style="--c:var(--jai)"><span class="n">8</span><span class="nm">Approve and send<small>Jai</small></span><span class="d">Jai reads each sentence with its quote, approves, and the send is logged with a snapshot of the facts it used.</span><span class="out">ledger<small>entry</small></span></div>
   </div>
   <p class="mut small" style="margin-top:12px">Every model call is cached on disk, keyed by its exact input. A rebuild with no new input takes under a second and gives the same result every time.</p>
@@ -393,31 +393,34 @@ main{min-width:0}
 <!-- 6 -->
 <section class="ch" id="c6">
   <span class="no">Chapter 6</span>
-  <h2>How the system decides what is true</h2>
-  <p class="lead">Two ideas. Every claim gets a trust tier: how good is this statement? Every fact sets a bar: how good must a statement be to settle this thing? A fact has no tier of its own; it is verified when its best claim clears its bar. Anthony on Slack clears the bar for log retention but not for a SOC 2 report. Then six questions, always in the same order, give the status.</p>
-  <h3>Trust tiers</h3>
+  <h2>How a question becomes a fact</h2>
+  <p class="lead">Two things only. A <b>statement</b> is what one source says. A <b>question</b> is something we need to know, like Acme's app-log retention. When the right person or document settles a question, it becomes a <b>fact</b>. A fact is always verified; if it isn't verified, it isn't a fact yet, and the system says why.</p>
+  <h3>Whose word counts</h3>
+  <p class="mut small">From strongest to weakest. A stronger statement beats a weaker one; between equals, the newest wins.</p>
   <div class="ladder">
-    <div class="rung"><span><span class="tier">1</span></span><b>Evidence</b><span class="ex">A document in the evidence store (Vanta). For facts only the customer can settle, the customer's own words. <span class="mut">Example: <q>SOC 2 Type II, Jan-Dec 2025: FINAL.</q></span></span></div>
-    <div class="rung"><span><span class="tier">2</span></span><b>Owner confirmed</b><span class="ex">The person who owns that area states it as settled, on Slack, in notes or by email. <span class="mut">Example: Anthony, <q>App logs are 14 days.</q></span></span></div>
-    <div class="rung"><span><span class="tier">3</span></span><b>Plan or chat</b><span class="ex">Deal documents and drafts, or chat from someone who is not the owner. <span class="mut">Example: <q>App logs intended 14 days.</q></span></span></div>
-    <div class="rung"><span><span class="tier t4">4</span></span><b>Hint</b><span class="ex">A generic product doc, a draft answer typed into the questionnaire, or another customer's answer. Shown, never the answer. <span class="mut">Example: <q>Standard application logs: 30 days.</q></span></span></div>
+    <div class="rung"><span><span class="tier">Doc</span></span><b>A document</b><span class="ex">A document in the evidence store (Vanta). For questions only the customer can answer, the customer's own words. <span class="mut">Example: <q>SOC 2 Type II, Jan-Dec 2025: FINAL.</q></span></span></div>
+    <div class="rung"><span><span class="tier">Owner</span></span><b>The owner</b><span class="ex">The person who owns that area says it as settled, on Slack, in notes or by email. <span class="mut">Example: Anthony, <q>App logs are 14 days.</q></span></span></div>
+    <div class="rung"><span><span class="tier">Plan</span></span><b>A plan or chat</b><span class="ex">Deal documents and drafts, or chat from someone who is not the owner. Useful, but it can't settle anything on its own. <span class="mut">Example: <q>App logs intended 14 days.</q></span></span></div>
+    <div class="rung"><span><span class="tier t4">Hint</span></span><b>A hint</b><span class="ex">A generic product doc, a draft answer typed into the questionnaire, or another customer's answer. Shown to Jai, never the answer. <span class="mut">Example: <q>Standard application logs: 30 days.</q></span></span></div>
   </div>
-  <h3 style="margin-top:22px">What proof each fact needs</h3>
+  <h3 style="margin-top:22px">What settles each question</h3>
+  <p class="mut small">Jai set this once per question in the catalog. It is the rule that stops a Slack message from settling SOC 2.</p>
   <div class="proof">
-    <div><b>A document</b>SOC 2, pen test, insurance. Only tier 1 verifies them. A Slack message saying the new report is final cannot.</div>
-    <div><b>The owner</b>Storage region, log retention, model providers. Tier 2 or better. Jai verifies these today by asking the owning team.</div>
-    <div><b>The customer</b>Acme's residency rule, the pilot's data scope. Only the customer's own words verify them; our guess is tier 3.</div>
+    <div><b>A document</b>SOC 2, pen test, insurance. Only the document itself settles them. A Slack message saying the new report is final cannot.</div>
+    <div><b>The owner</b>Storage region, log retention, model providers. The owner saying so settles them (a document also does). This is how Jai checks them today.</div>
+    <div><b>The customer</b>Acme's residency rule, the pilot's data scope. Only the customer's own words settle them; our guess is just a plan.</div>
   </div>
-  <h3 style="margin-top:26px">Six questions, in order</h3>
+  <h3 style="margin-top:26px">Six checks, in order</h3>
+  <p class="mut small">The first one that matches gives the question its status. Only the last one makes it a fact.</p>
   <div class="flow">
-    <div class="fq"><span class="ask">Is there any usable claim (tier 1 to 3)?</span><span>If not: <span class="st unknown">Unknown</span></span><span class="ex">Acme residency requirement: <q>Nothing usable says anything about this.</q> Only Acme can answer.</span></div>
-    <div class="fq"><span class="ask">Does someone say it is not decided, with nothing settled above it?</span><span>Then: <span class="st undecided">Undecided</span></span><span class="ex">Acme fallback routing. Anthony: <q>for Acme probably disable if residency/legal requires it. Not finalized.</q></span></div>
-    <div class="fq"><span class="ask">Does another usable claim disagree with the best one?</span><span>Then: <span class="st conflicting">Conflicting</span></span><span class="ex">Pen test remediation. The owner says <q>Remediated; evidence needed</q>; the evidence on file says no remediation evidence. Get updated evidence.</span></div>
-    <div class="fq"><span class="ask">Is the best claim the kind of proof this fact needs?</span><span>If not: <span class="st unconfirmed">Unconfirmed</span></span><span class="ex">Acme app-log retention: a plan, but the owner has not confirmed it.</span></div>
-    <div class="fq"><span class="ask">Has it expired, or is it older than this fact's age limit?</span><span>Then: <span class="st out_of_date">Out of date</span></span><span class="ex">Pen test: dated Feb 2026, 275 days old, policy allows 183. Insurance: expired on 1 October 2026.</span></div>
-    <div class="fq end"><span class="ask">Otherwise</span><span><span class="st verified">Verified</span></span><span class="ex">SOC 2: settled by the evidence store, with the caveat <q>Also on file: 2026 audit not yet final.</q></span></div>
+    <div class="fq"><span class="ask">Has anyone whose word counts said anything? (Hints don't count.)</span><span>If not: <span class="st unknown">Unknown</span></span><span class="ex">Acme residency requirement: <q>Nothing usable says anything about this.</q> Only Acme can answer.</span></div>
+    <div class="fq"><span class="ask">Does someone say it is not decided yet?</span><span>Then: <span class="st undecided">Undecided</span></span><span class="ex">Acme fallback routing. Anthony: <q>for Acme probably disable if residency/legal requires it. Not finalized.</q></span></div>
+    <div class="fq"><span class="ask">Do two statements that count disagree?</span><span>Then: <span class="st conflicting">Conflicting</span></span><span class="ex">Pen test remediation. The owner says <q>Remediated; evidence needed</q>; the evidence on file says no remediation evidence. Get updated evidence.</span></div>
+    <div class="fq"><span class="ask">Did the right person or document say it?</span><span>If not: <span class="st unconfirmed">Unconfirmed</span></span><span class="ex">Acme app-log retention: there is a plan, but the owner has not confirmed it.</span></div>
+    <div class="fq"><span class="ask">Has it expired, or is it older than this question allows?</span><span>Then: <span class="st out_of_date">Out of date</span></span><span class="ex">Pen test: dated Feb 2026, 275 days old, policy allows 183. Insurance: expired on 1 October 2026.</span></div>
+    <div class="fq end"><span class="ask">Otherwise</span><span><span class="st verified">Fact</span></span><span class="ex">SOC 2: settled by the Vanta report, with the note <q>Also on file: 2026 audit not yet final.</q></span></div>
   </div>
-  <p class="mut small" style="margin-top:10px">Recency: higher trust wins, and the date breaks ties. A newer but less trusted claim that disagrees does not win; it makes the fact conflicting. An older claim replaced by a newer one is superseded, not a conflict.</p>
+  <p class="mut small" style="margin-top:10px">A newer but weaker statement that disagrees does not win; it makes the question conflicting. An older statement replaced by a newer one from the same kind of source is just out of date, not a conflict.</p>
   <h3 style="margin-top:22px">Requirements get a status too</h3>
   <div class="reqst">
     <b>Ready</b><span>Every fact it needs is verified. Jai can draft and approve.</span>
@@ -483,10 +486,10 @@ main{min-width:0}
     <div class="sent">The 2026 audit is not yet final.<div class="cite">Cites the evidence store: <q class="quote">2026 audit is not yet final.</q></div></div>
     <p style="margin:12px 0 4px"><b>Code checks before Approve is enabled</b></p>
     <ul class="checks">
-      <li>Every answer sentence cites at least one claim.</li>
-      <li>Every cited claim belongs to a verified fact of this requirement.</li>
+      <li>Every answer sentence cites at least one statement.</li>
+      <li>Every cited statement settles a fact this requirement needs.</li>
       <li>Nothing cites a hint: another customer, a generic doc or a questionnaire draft.</li>
-      <li>Unverified facts appear only as pending lines naming the owner, and a pending line may not leak the best guess.</li>
+      <li>Open questions appear only as pending lines naming the owner, and a pending line may not leak the best guess.</li>
       <li>If the facts changed since the draft was made, Approve is disabled until it is redrafted.</li>
     </ul>
     <p class="mut small" style="margin:10px 0 0">Result for this draft: no errors, so Jai can approve. When he does, the ledger records the text and a snapshot of the SOC 2 fact as it was.</p>
@@ -509,24 +512,24 @@ main{min-width:0}
         <span class="f">Q-062</span><span>The predicted BCP and DR test topic is now actually asked</span></div></div>
     <div class="ev" style="--c:var(--ok)"><span class="when">4 Nov, email</span><h3>Elena answers the residency question</h3>
       <p class="said quote">Acme requires that customer content is not processed outside Canada, including model inference and any fallback providers.</p>
-      <div class="chg"><span class="f">Acme residency requirement</span><span class="tr"><span class="st unknown">Unknown</span>to<span class="st verified">Verified</span> by the customer's own statement</span></div></div>
+      <div class="chg"><span class="f">Acme residency requirement</span><span class="tr"><span class="st unknown">Unknown</span>to<span class="st verified">Fact</span> by the customer's own statement</span></div></div>
     <div class="ev" style="--c:var(--ok)"><span class="when">4 Nov, Slack</span><h3>Anthony checks the deployed config</h3>
       <div class="chg">
-        <span class="f">Storage location</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> AWS ca-central-1</span>
-        <span class="f">Fallback routing</span><span class="tr"><span class="st undecided">Undecided</span>to<span class="st verified">Verified</span> Anthropic fallback disabled</span>
-        <span class="f">Model providers</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> OpenAI</span>
-        <span class="f">App-log retention</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> 14 days</span>
-        <span class="f">Traces</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> payload capture off</span></div></div>
+        <span class="f">Storage location</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Fact</span> AWS ca-central-1</span>
+        <span class="f">Fallback routing</span><span class="tr"><span class="st undecided">Undecided</span>to<span class="st verified">Fact</span> Anthropic fallback disabled</span>
+        <span class="f">Model providers</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Fact</span> OpenAI</span>
+        <span class="f">App-log retention</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Fact</span> 14 days</span>
+        <span class="f">Traces</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Fact</span> payload capture off</span></div></div>
     <div class="ev" style="--c:var(--red)"><span class="when">5 Nov, Slack</span><h3>Anthony says the 2026 SOC 2 is final</h3>
       <p class="said quote">The 2026 SOC 2 Type II report is final, auditors signed off last week.</p>
-      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st verified">Verified</span>to<span class="st conflicting">Conflicting</span> the owner says 2026 is final; the evidence on file is 2025</span>
+      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st verified">Fact</span>to<span class="st conflicting">Conflicting</span> the owner says 2026 is final; the evidence on file is 2025</span>
         <span class="f">Sent answer Q-007</span><span>At risk. Not yet an update owed: a chat message cannot prove a SOC 2 report.</span></div></div>
     <div class="ev" style="--c:var(--ok)"><span class="when">6 Nov, Vanta</span><h3>The 2026 SOC 2 report lands in the evidence store</h3>
       <p class="said quote">SOC 2 Type II report, audit period Jan 1 - Sep 30, 2026: FINAL. Report issued Oct 28, 2026. No exceptions noted.</p>
-      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st conflicting">Conflicting</span>to<span class="st verified">Verified</span> 2026 report, no exceptions</span>
-        <span class="f">Sent answer Q-007</span><span>Update owed: Acme was told 2025, and the verified fact is now 2026.</span></div></div>
+      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st conflicting">Conflicting</span>to<span class="st verified">Fact</span> 2026 report, no exceptions</span>
+        <span class="f">Sent answer Q-007</span><span>Update owed: Acme was told 2025, and the fact is now 2026.</span></div></div>
     <div class="ev" style="--c:var(--ok)"><span class="when">6 Nov, Vanta</span><h3>The renewed insurance certificate</h3>
-      <div class="chg"><span class="f">Insurance</span><span class="tr"><span class="st out_of_date">Out of date</span>to<span class="st verified">Verified</span> CAD 5,000,000, Oct 2026 to Oct 2027</span></div></div>
+      <div class="chg"><span class="f">Insurance</span><span class="tr"><span class="st out_of_date">Out of date</span>to<span class="st verified">Fact</span> CAD 5,000,000, Oct 2026 to Oct 2027</span></div></div>
   </div>
 </section>
 
@@ -537,7 +540,7 @@ main{min-width:0}
   <p class="lead">A Streamlit app over the same state. Run it with <code>.venv/bin/streamlit run app.py</code>.</p>
   <div class="screens">
     <div class="sheet"><h3>Monday briefing</h3><p>What changed since the last rebuild, each deal's state, Jai's to-dos, root blockers, one message per person with what it unlocks, waits, delays and updates owed.</p></div>
-    <div class="sheet"><h3>Deal</h3><p>Seven tabs: what is required, what we know, what is unresolved, what is blocking, what to do next, fact detail (every claim with its tier and quote), and rounds (how round 2 matched round 1).</p></div>
+    <div class="sheet"><h3>Deal</h3><p>Seven tabs: what is required, what we know, what is unresolved, what is blocking, what to do next, questions (every statement about one, with its source and quote), and rounds (how round 2 matched round 1).</p></div>
     <div class="sheet"><h3>Approvals</h3><p>Pick a ready requirement, draft it, read each sentence with its cited quote, and approve and send. Approve is disabled while any check fails.</p></div>
     <div class="sheet"><h3>Add input</h3><p>Add one of the six demo inputs, or paste your own email, Slack message or questionnaire. The state rebuilds and the briefing shows what changed. Move the as-of date to watch deadlines and expiry shift.</p></div>
   </div>
@@ -566,11 +569,11 @@ main{min-width:0}
   <table class="files">
     <tr><th>File</th><th>What it does</th><th>Who decides</th><th>Lines</th></tr>
     <tr><td>pn/sources.py</td><td>Load folders and the inbox; parse questionnaires; find placeholder rows; reject fake evidence</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">202</td></tr>
-    <tr><td>pn/extract.py</td><td>Read each source into claims and asks; drop quotes not in the source</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">170</td></tr>
+    <tr><td>pn/extract.py</td><td>Read each source into statements and asks; drop quotes not in the source</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">170</td></tr>
     <tr><td>pn/requirements.py</td><td>Merge asks into requirements; match later rounds; stable ids</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">174</td></tr>
-    <tr><td>pn/resolve.py</td><td>Trust tiers, compare labels, the six status questions, dependencies</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">290</td></tr>
+    <tr><td>pn/resolve.py</td><td>Whose word counts, compare labels, the six checks, dependencies</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">290</td></tr>
     <tr><td>pn/planner.py</td><td>Actions, ranking, messages per person, waits, delays, updates owed</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">318</td></tr>
-    <tr><td>pn/drafting.py</td><td>Draft an answer from verified facts; the checker</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">127</td></tr>
+    <tr><td>pn/drafting.py</td><td>Draft an answer from facts; the checker</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">127</td></tr>
     <tr><td>pn/engine.py</td><td>Runs the steps in order and builds the whole state</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">231</td></tr>
     <tr><td>pn/llm.py</td><td>One way to call the model: strict JSON out, cached on disk</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">104</td></tr>
     <tr><td>pn/ledger.py, models.py</td><td>What was sent and asked; the dataclasses</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">136</td></tr>
@@ -587,8 +590,8 @@ if (getComputedStyle(document.documentElement).getPropertyValue("--background").
 // chapter 3: the five words
 const TERMS = [
  ["Source","22","One input exactly as it arrived: an email thread, a Slack export, a drive file, a Vanta document, a questionnaire. Never edited.","acme/03_internal/internal_messages.txt, from Slack."],
- ["Claim","67","One thing a source says about one fact, with the exact quote, who said it, and whether it is evidence, a statement, a plan or undecided.","From the Acme draft config: app-log retention is “14 days”, quote “App logs intended 14 days.”"],
- ["Fact","52","One thing that is true or not, from the catalog. Company facts (SOC 2) are shared by every deal; deal facts (Acme residency) are not. Each gets one status from its claims.","acme.retention_app_logs: unconfirmed, best value 14 days."],
+ ["Statement","67","One thing a source says about one question, with the exact quote, who said it, and whether it is evidence, said as settled, a plan or undecided.","From the Acme draft config: app-log retention is “14 days”, quote “App logs intended 14 days.”"],
+ ["Fact","5 of 52","A question that has been settled. The catalog lists 52 questions, each with an owner and what settles it; company ones (SOC 2) are shared by every deal, deal ones (Acme residency) are not. A fact is always verified. Until then the question shows why not: unknown, undecided, conflicting, unconfirmed or out of date.","Fact: Acme data residency is Canada, from Elena's email. Not yet a fact: Acme app-log retention, unconfirmed, best guess 14 days."],
  ["Requirement","68","One distinct thing a customer needs, merged from every place they asked. It points at the facts an answer depends on.","acme:Q-004, Retention by data type, needs four retention facts."],
  ["Action","many","Something one person can do today: confirm, get evidence, renew, decide, ask the customer, approve, send an update. Ranked by how many answers wait on it.","Anthony: confirm Acme app-log retention, is it 14 days?"],
 ];

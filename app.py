@@ -28,19 +28,19 @@ COLOR = {"verified": "green", "ready": "green",
          "unknown": "gray", "missing_text": "gray", "umbrella": "gray", "unmapped": "gray",
          "predicted": "blue"}
 NICE = {"out_of_date": "out of date", "missing_text": "no question text", "update_owed": "update owed",
-        "at_risk": "at risk", "umbrella": "covers others", "unmapped": "no facts mapped"}
+        "at_risk": "at risk", "umbrella": "covers others", "unmapped": "no question mapped"}
 HEX = {"green": "#2E7D4F", "orange": "#B8770B", "red": "#B53B33", "violet": "#6A4C9C",
        "gray": "#7F8A85", "blue": "#24467A"}
 MEANING = [  # the status key, in the order Jai should care about
-    ("conflicting", "two trusted sources disagree"),
-    ("out_of_date", "the proof is stale or past its expiry date"),
+    ("conflicting", "sources that count disagree"),
+    ("out_of_date", "it was a fact, but the evidence is stale or expired"),
     ("undecided", "someone still has to make the call"),
-    ("unconfirmed", "we have a value, but not the proof it needs (document, owner or customer)"),
-    ("unknown", "nothing usable says anything yet"),
-    ("verified", "settled by the proof the fact requires"),
+    ("unconfirmed", "someone said it, but not a source that can settle it"),
+    ("unknown", "nobody who counts has said anything yet"),
+    ("verified", "settled: this is now a fact"),
 ]
 UNSETTLED = [s for s, _ in MEANING if s != "verified"]   # worst first
-LADDER = [  # trust tiers from config/policy.yaml, strongest first
+LADDER = [  # whose word counts, strongest first (config/policy.yaml)
     ("Vanta evidence, or the customer's own statement", 1),
     ("The owner stating it as settled", 2),
     ("A deal document or draft, or other internal chat", 3),
@@ -192,10 +192,11 @@ def ladder_html() -> str:
 
 
 def status_key():
-    st.markdown("**Which source wins.** Higher on the ladder beats lower; on a tie, the most recent wins.")
+    st.markdown("**Whose word counts.** Higher beats lower; on a tie, the most recent wins. "
+                "Each question also says what can settle it: a Vanta document, the owner, or the customer.")
     st.html(ladder_html())
     st.caption("Hints are shown so you can see them, and never become our answer.")
-    st.markdown("**What each status means**")
+    st.markdown("**Where each question stands**")
     st.markdown("  \n".join(f"{badge(s)} {m}" for s, m in MEANING))
 
 
@@ -213,10 +214,11 @@ with st.sidebar:
         rebuild(f"Today's date moved to {new_date:%-d %B %Y}")
         st.rerun()
     st.caption(f"Rebuilt in {st.session_state.get('build_secs', 0)}s from {len(S.sources)} sources "
-               f"({len(S.claims)} claims, {len(S.facts)} facts).")
+               f"({len(S.claims)} statements about {len(S.facts)} questions, "
+               f"{sum(f.status == 'verified' for f in S.facts.values())} settled as facts).")
     if S.errors:
         st.error("\n".join(S.errors))
-    with st.expander("How facts are decided"):
+    with st.expander("How a question becomes a fact"):
         status_key()
     if st.button("Clear added inputs and the ledger",
                  help="Resets the demo: removes inputs you added and every approval, send and ask."):
@@ -390,7 +392,7 @@ def deal_page():
     for i in S.instructions[deal]:
         st.markdown(f"**{DN[deal]} asked us to:** {i.text}")
     tabs = st.tabs(["What's required", "What we know", "What's unresolved", "What's blocking", "What to do next",
-                    "Fact detail", "Rounds"])
+                    "Questions", "Rounds"])
     rs = S.reqs[deal]
     keys = sorted({fact_key(deal, n, S.catalog) for r in rs for n in r.facts})
     with tabs[0]:
@@ -416,7 +418,7 @@ def deal_page():
                             f"{label(fact_key(deal, n, S.catalog))} "
                             f"{badge(S.facts[fact_key(deal, n, S.catalog)].status)}" for n in r.facts))
     with tabs[1]:
-        st.caption("Verified facts, each with the source that settles it.")
+        st.caption("Facts: questions that are settled, each with the statement that settles it.")
         shown = 0
         for k in keys:
             f = S.facts[k]
@@ -429,7 +431,7 @@ def deal_page():
         if not shown:
             st.caption("Nothing is verified for this deal yet.")
     with tabs[2]:
-        st.caption("Not settled yet, worst first, with why and who can settle it. "
+        st.caption("Questions that are not facts yet, worst first, with why and who can settle them. "
                    "Best guesses here are internal and never sent.")
         for status in UNSETTLED:
             for k in keys:
@@ -472,21 +474,24 @@ def deal_page():
 
 
 def fact_detail(deal: str):
-    """Why a value won: every claim about one fact, with its trust tier."""
+    """One question: every statement about it, and whether it is settled as a fact."""
     main, key = st.columns([2.2, 1], gap="large")
     with key:
         status_key()
     with main:
         keys = [k for k in S.facts if k.startswith(deal + ".")] + \
                [k for k in S.facts if k.startswith("company.")]
-        k = st.selectbox("Fact", keys, key=f"fact-{deal}",
+        k = st.selectbox("Question", keys, key=f"fact-{deal}",
                          format_func=lambda x: f"{label(x)} ({nice(S.facts[x].status)})")
         f = S.facts[k]
         st.subheader(label(k))
         st.markdown(f"{badge(f.status)} **{f.value or 'No value yet'}**  \n{f.reason}")
-        st.markdown(f"*{f.spec['question']}*  \nOwner **{f.spec['owner']}**, needs "
-                    f"**{f.spec['proof'].replace('_', ' ')}** as proof"
-                    + (f", and the proof must be under {f.spec['max_age_days']} days old" if f.spec.get("max_age_days") else "")
+        owner = S.policy["team_owner"].get(f.spec["owner"], f.spec["owner"])
+        settles = {"document": "a document in Vanta", "customer": "the customer saying it",
+                   "owner_confirmation": f"the owner ({owner}, {f.spec['owner']}) saying it"}.get(
+            f.spec["proof"], f.spec["proof"].replace("_", " "))
+        st.markdown(f"*{f.spec['question']}*  \nSettled by **{settles}**"
+                    + (f", no older than {f.spec['max_age_days']} days" if f.spec.get("max_age_days") else "")
                     + ".")
         for w in f.warnings:
             st.warning(w)
@@ -498,11 +503,11 @@ def fact_detail(deal: str):
         rows = []
         for c in f.claims + f.hints:
             src = S.sources[c.source_id]
-            rows.append({"Wins": "yes" if f.winner and c.id == f.winner.id else "", "Tier": c.tier,
-                         "Trust": trust(c, src), "Value": c.value, "Quote": c.quote, "Kind": c.assertion,
+            rows.append({"Best": "yes" if f.winner and c.id == f.winner.id else "",
+                         "Source": trust(c, src), "Says": c.value, "Quote": c.quote, "Kind": c.assertion,
                          "Said by": c.speaker or "", "Date": str(c.eff_date or ""),
-                         "Source": src.title})
-        st.markdown("**Every source that says something about it**")
+                         "From": src.title})
+        st.markdown("**Every statement about it**")
         if rows:
             st.dataframe(rows, width="stretch", hide_index=True)
         else:

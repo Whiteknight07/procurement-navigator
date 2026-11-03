@@ -99,7 +99,7 @@ def check(req, out: dict, state) -> dict:
             for cid in s["claim_ids"]:
                 c = claims.get(cid)
                 if not c:
-                    flags.append(f"cites unknown claim {cid}")
+                    flags.append(f"cites an unknown statement {cid}")
                     continue
                 k = fact_key(req.deal, c.fact, state.catalog)
                 if c.tier >= HINT:
