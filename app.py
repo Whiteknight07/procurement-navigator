@@ -577,7 +577,10 @@ def approval_card(d, deal, r):
     bad = sum(1 for fl in per if fl)
     pend = sum(1 for s in d["sentences"] if s["kind"] == "pending")
     with st.container(border=True):
-        st.subheader(f"Answer for {DN[deal]}")
+        st.subheader(f"Draft answer to {r.id.split(':')[1]}: {r.title}")
+        st.caption(f"One answer for {DN[deal]}, written by the model and shown one sentence at a time. Under each "
+                   "sentence is its proof: what kind of source said it, the file, and the exact quote. "
+                   "Approving records it as sent; you paste it into the questionnaire or reply yourself.")
         verdict = ("Ready to approve." if d["checks"]["can_approve"] else
                    "Cannot be approved until the red problems are fixed.")
         st.markdown(f"{plural(len(d['sentences']), 'sentence')}: {pend} pending, {bad} with a problem. "
@@ -592,7 +595,7 @@ def approval_card(d, deal, r):
                 cl = claims.get(cid)
                 if cl:
                     src = S.sources[cl.source_id]
-                    body += (f'<div class="pn-cite"><b>{esc(trust(cl, src))}</b> in '
+                    body += (f'<div class="pn-cite">Proof: <b>{esc(trust(cl, src))}</b> in '
                              f'{esc(src.title.split("/")[-1])}: <q>{esc(cl.quote)}</q></div>')
                 else:
                     body += f'<div class="pn-flag">Cites {esc(cid)}, which does not exist</div>'
