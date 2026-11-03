@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html
 import json
-import re
 import shutil
 import time
 from collections import Counter
@@ -307,7 +306,8 @@ def briefing():
                         + (f". {no_text} questionnaire rows have no real question text yet." if no_text else "."))
 
     st.divider()
-    if True:   # one column: what needs Jai personally
+    left, right = st.columns([1, 1], gap="large")
+    with left:
         st.header("For you to do")
         if not jai and not P["batches"]:
             st.caption("Nothing needs you right now.")
@@ -327,46 +327,41 @@ def briefing():
             c2.button("Review answer", key=f"go-{a.req}", on_click=go_approve, args=(a.req,),
                       width="stretch")
         if P["batches"]:
-            st.markdown(f"**Send {plural(len(P['batches']), 'message')}**, one per person, below. Each item "
+            st.markdown(f"**Send {plural(len(P['batches']), 'message')}**, one per person, on the right. Each item "
                         "carries our current best answer so they only confirm or correct it.")
-        if S.draft_flags:
-            st.subheader("Answers already typed into the questionnaires: don't send these")
-            st.caption("Someone at Lantern pre-filled these rows before any checking. Each one is either wrong "
-                       "or has nothing behind it, often copied from an old doc or another customer.")
-            for f in S.draft_flags:
-                text = re.sub(r"^\[\w+\] ", "", f["text"])
-                st.markdown(f"- **{label(f['fact'])}**: {text}")
+    with right:
+        st.header("What moves things forward")
+        st.caption("Only things someone can do today. People whose answers unlock the most answers come first; "
+                   "slow responders come before quick ones so their clock starts now.")
+        def gain(items):
+            imp = [P["impact"].get(a.title, {"ready": 0, "unblocked": 0}) for a in items]
+            return (-sum(a.unblocks for a in items), -sum(i["ready"] for i in imp), -sum(i["unblocked"] for i in imp))
+
+        for who, items in sorted(P["batches"].items(), key=lambda kv: gain(kv[1])):
+            total = sum(a.unblocks for a in items)
+            with st.expander(f"**{who}**: {plural(len(items), 'item')}, unblocks {total}, "
+                             f"usually replies in {items[0].reply_days:g} business days"):
+                for a in items:
+                    imp = impact_text(a)
+                    need = needed_by(a.facts)
+                    above = sorted({k for bl in P["blockers"] if bl["fact"] in a.facts
+                                    for c in bl["chains"] for k in c.split(" → ")[:-1]})
+                    st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}"
+                                + (f"  \n  :green[{imp}]" if imp else "")
+                                + (f"  \n  :gray[Answers it feeds: {need}]" if need else "")
+                                + (f"  \n  :red[Root blocker: {', '.join(above)} cannot move until this is settled]"
+                                   if above else ""))
+                msg = batch_message(who, items, S)
+                st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
+                if st.button(f"I sent this to {who}", key=f"ask-{who}",
+                             help="Records the ask so the briefing tracks the wait and flags it when overdue."):
+                    ledger.append({"type": "asked", "who": who, "date": str(S.as_of),
+                                   "facts": [k for a in items for k in a.facts], "note": msg[:200]})
+                    rebuild(f"Asked {who}")
+                    st.rerun()
+
+
     st.divider()
-    st.header("What moves things forward")
-    st.caption("Only things someone can do today. People whose answers unlock the most answers come first; "
-               "slow responders come before quick ones so their clock starts now.")
-    def gain(items):
-        imp = [P["impact"].get(a.title, {"ready": 0, "unblocked": 0}) for a in items]
-        return (-sum(a.unblocks for a in items), -sum(i["ready"] for i in imp), -sum(i["unblocked"] for i in imp))
-
-    for who, items in sorted(P["batches"].items(), key=lambda kv: gain(kv[1])):
-        total = sum(a.unblocks for a in items)
-        with st.expander(f"**{who}**: {plural(len(items), 'item')}, unblocks {total}, "
-                         f"usually replies in {items[0].reply_days:g} business days"):
-            for a in items:
-                imp = impact_text(a)
-                need = needed_by(a.facts)
-                above = sorted({k for bl in P["blockers"] if bl["fact"] in a.facts
-                                for c in bl["chains"] for k in c.split(" → ")[:-1]})
-                st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}"
-                            + (f"  \n  :green[{imp}]" if imp else "")
-                            + (f"  \n  :gray[Answers it feeds: {need}]" if need else "")
-                            + (f"  \n  :red[Root blocker: {', '.join(above)} cannot move until this is settled]"
-                               if above else ""))
-            msg = batch_message(who, items, S)
-            st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
-            if st.button(f"I sent this to {who}", key=f"ask-{who}",
-                         help="Records the ask so the briefing tracks the wait and flags it when overdue."):
-                ledger.append({"type": "asked", "who": who, "date": str(S.as_of),
-                               "facts": [k for a in items for k in a.facts], "note": msg[:200]})
-                rebuild(f"Asked {who}")
-                st.rerun()
-
     left, right = st.columns(2, gap="large")
     with left:
         st.subheader("What's delaying")
