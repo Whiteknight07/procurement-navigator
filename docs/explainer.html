@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works, from the ground up: Procurement Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8F4; --panel:#E9EEE7; --ink:#26302E; --mut:#5E6B66; --rule:#CBD5CA; --sheet:#FFFFFF;
+  --model:#6A4C9C; --code:#24467A; --jai:#2E7D4F;
+  --ok:#2E7D4F; --amber:#B8770B; --red:#B53B33; --vio:#6A4C9C; --grey:#7F8A85;
+  --r:6px; --body:"Public Sans",system-ui,sans-serif; --disp:"Archivo Narrow","Public Sans",sans-serif;
+}
+.t3{--paper:transparent; --panel:var(--secondary); --ink:var(--foreground); --mut:var(--muted-foreground);
+  --rule:var(--border); --sheet:var(--card); --model:#A58BE0; --code:#7FA6E6; --jai:#5DBA84;
+  --ok:#5DBA84; --amber:#D9A03A; --red:#E0776F; --vio:#A58BE0; --grey:#9AA5A0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.62 var(--body)}
+.page{max-width:1100px;margin:0 auto;padding:40px 24px 90px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:44px}
+.t3 .page{padding:4px 2px 40px}
+h1,h2,h3{font-family:var(--disp);margin:0;font-weight:700}
+h1{font-size:56px;line-height:1;letter-spacing:-.015em;max-width:21ch}
+h2{font-size:32px;line-height:1.08;margin-bottom:6px;letter-spacing:-.005em}
+h3{font-size:20px;line-height:1.2}
+p{margin:0 0 10px;max-width:70ch}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--code);outline-offset:3px;border-radius:3px}
+code{font-family:inherit;font-weight:600;background:var(--panel);padding:0 5px;border-radius:3px;font-size:.93em}
+q{quotes:"\201C" "\201D"}
+.quote{font-style:italic}
+
+/* chapter nav: chapters are read in order, so they are numbered */
+nav.toc{position:sticky;top:24px;align-self:start;display:grid;gap:0;font-size:14px}
+nav.toc a{display:grid;grid-template-columns:26px 1fr;color:var(--mut);text-decoration:none;padding:5px 0;border-bottom:1px solid var(--rule)}
+nav.toc a b{font:700 14px var(--disp);color:var(--mut)}
+nav.toc a:hover,nav.toc a.on{color:var(--ink)}
+nav.toc a.on b{color:var(--code)}
+nav.toc .also{margin-top:16px;font-size:13.5px;color:var(--mut)}
+nav.toc .also a{display:inline;border:0;color:var(--code);text-decoration:underline;text-underline-offset:3px}
+
+main{min-width:0}
+.hero p{font-size:18px;color:var(--mut);margin-top:16px;max-width:60ch}
+.ch{padding-top:64px}
+.ch>.no{font:700 15px var(--disp);color:var(--code);display:block;margin-bottom:2px}
+.lead{font-size:17px;color:var(--mut);max-width:64ch;margin-bottom:18px}
+
+/* shared bits */
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mut{color:var(--mut)}
+.small{font-size:13.5px}
+.st{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;white-space:nowrap}
+.st::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.st.verified{--c:var(--ok)}.st.unconfirmed{--c:var(--amber)}.st.conflicting{--c:var(--red)}
+.st.undecided{--c:var(--vio)}.st.out_of_date{--c:var(--red)}.st.unknown{--c:var(--grey)}
+.tier{display:inline-block;font:700 13px var(--disp);padding:0 7px;border-radius:3px;border:1.5px solid var(--ink);min-width:44px;text-align:center}
+.tier.t4{border-style:dashed;color:var(--mut);border-color:var(--mut)}
+.src{font-size:13px;color:var(--mut)}
+.arrowline{color:var(--mut);font-size:13.5px}
+
+/* chapter 1 */
+.five{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
+.five div{border-top:5px solid var(--ink);padding:8px 2px 0;font:600 16px/1.2 var(--disp)}
+.five small{display:block;font:400 13px/1.4 var(--body);color:var(--mut);margin-top:4px}
+.pains{margin:0;padding:0;list-style:none;display:grid;gap:8px;max-width:72ch}
+.pains li{padding-left:18px;position:relative}
+.pains li::before{content:"";position:absolute;left:0;top:10px;width:8px;height:2px;background:var(--ink)}
+
+/* chapter 2 */
+.inputs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.inp{border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;background:var(--sheet)}
+.inp h3{font-size:17px;display:flex;justify-content:space-between;gap:8px}
+.inp h3 span{font:600 14px var(--disp);color:var(--mut)}
+.inp ul{margin:6px 0 0;padding-left:16px;font-size:13.5px;color:var(--mut)}
+
+/* chapter 3: the vocabulary chain */
+.chain{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px}
+.term{all:unset;cursor:pointer;padding:12px 12px 14px;border-top:6px solid var(--ink);border-right:1px solid var(--rule);background:var(--sheet)}
+.term:last-child{border-right:0}
+.term .w{font:700 21px var(--disp);display:block}
+.term .c{font:600 14px var(--disp);color:var(--mut)}
+.term[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.term[aria-pressed=true] .c{color:var(--paper);opacity:.75}
+.t3 .term[aria-pressed=true]{color:var(--background)}
+.term:focus-visible{outline:2px solid var(--code);outline-offset:-2px}
+.termbox{border:1px solid var(--rule);border-top:0;padding:16px 18px;background:var(--sheet);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.termbox h4{margin:0 0 4px;font:600 15px var(--disp);color:var(--mut)}
+.also-terms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px}
+.also-terms div{border-left:3px solid var(--rule);padding-left:12px}
+.also-terms b{font:700 17px var(--disp);display:block}
+
+/* chapter 4: the stepper */
+.stepper{border:1px solid var(--rule);border-radius:var(--r);background:var(--sheet)}
+.dots{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--rule)}
+.dots button{all:unset;cursor:pointer;padding:10px 12px;font:600 14px/1.2 var(--disp);color:var(--mut);border-bottom:4px solid transparent}
+.dots button b{display:block;font-size:13px}
+.dots button[aria-selected=true]{color:var(--ink);border-color:var(--code)}
+.dots button.done{color:var(--ink)}
+.dots button:focus-visible{outline:2px solid var(--code);outline-offset:-2px}
+.panel{padding:20px 22px;display:none}
+.panel.on{display:block}
+.panel h3{margin-bottom:8px;font-size:23px}
+.claims{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 10px}
+.claims td,.claims th{border-bottom:1px solid var(--rule);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
+.claims th{font:600 14px var(--disp);color:var(--mut)}
+.verdict{border-left:5px solid var(--c);padding:10px 14px;background:color-mix(in srgb,var(--c) 8%,transparent);margin:10px 0;max-width:72ch}
+.verdict b{font-family:var(--disp);font-size:17px}
+.nav2{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;border-top:1px solid var(--rule)}
+.btn{all:unset;cursor:pointer;font-weight:600;font-size:14.5px;padding:7px 16px;border-radius:var(--r);border:1.5px solid var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.t3 .btn.primary{color:var(--background)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.btn:focus-visible{outline:2px solid var(--code);outline-offset:2px}
+.msg{font-size:14.5px;border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;max-width:64ch;background:var(--paper)}
+.msg .hd{font-weight:600;margin-bottom:4px}
+.msg ul{margin:4px 0 0;padding-left:18px}
+
+/* chapter 5: pipeline */
+.pipe{display:grid;gap:0;border-top:2px solid var(--ink)}
+.pstep{display:grid;grid-template-columns:40px 170px minmax(0,1fr) 150px;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule);align-items:start}
+.pstep .n{font:700 24px/1 var(--disp);color:var(--c)}
+.pstep .nm{font:700 18px/1.2 var(--disp)}
+.pstep .nm small{display:block;font:600 13px var(--body);color:var(--c);margin-top:3px}
+.pstep .out{font:700 22px/1.1 var(--disp);text-align:right}
+.pstep .out small{display:block;font:400 12.5px/1.35 var(--body);color:var(--mut);margin-top:2px}
+.bar{display:flex;height:14px;border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.bar span{background:var(--c)}
+.barkey{display:flex;flex-wrap:wrap;gap:4px 14px}
+
+/* chapter 6: trust and statuses */
+.ladder{display:grid;gap:0;border-top:2px solid var(--ink)}
+.rung{display:grid;grid-template-columns:70px 180px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.rung b{font:700 17px var(--disp)}
+.proof{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.proof div{padding:12px 14px;background:var(--panel);border-radius:var(--r)}
+.proof b{font:700 17px var(--disp);display:block}
+.flow{display:grid;gap:0;margin-top:8px;counter-reset:q}
+.fq{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1.1fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:start}
+.fq .ask{font-weight:600}
+.fq .ask::before{counter-increment:q;content:counter(q) ". ";font-family:var(--disp);color:var(--code)}
+.fq .ex{font-size:14px;color:var(--mut)}
+.fq.end{border-bottom:2px solid var(--ink)}
+.reqst{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;margin-top:12px;font-size:14.5px;max-width:80ch}
+.reqst b{font-family:var(--disp);font-size:16px}
+
+/* chapter 7: chain */
+.dep{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:10px 0}
+.node{padding:10px 12px;border:1.5px solid var(--ink);background:var(--sheet);min-width:130px}
+.node b{display:block;font:700 16px/1.15 var(--disp)}
+.node.root{background:var(--ink);color:var(--paper)}
+.node.root .st{color:var(--paper)}
+.t3 .node.root{color:var(--background)}.t3 .node.root .st{color:var(--background)}
+.link{align-self:center;padding:0 6px;color:var(--mut);font:700 18px var(--disp)}
+
+/* chapter 8/9 */
+.brief{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.brief .sheet h3{font-size:18px;margin-bottom:6px}
+.brief ul{margin:0;padding-left:18px;font-size:14.5px}
+.brief li{margin:4px 0}
+.sent{border-left:4px solid var(--ok);padding:8px 12px;margin:8px 0;background:var(--paper)}
+.sent .cite{font-size:13px;color:var(--mut);margin-top:4px}
+.checks{margin:8px 0 0;padding-left:18px;font-size:14.5px}
+
+/* chapter 10: timeline */
+.tl{position:relative;margin-top:10px;padding-left:28px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--rule)}
+.ev{position:relative;padding:0 0 22px}
+.ev::before{content:"";position:absolute;left:-26px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:3px solid var(--c,var(--ink))}
+.ev .when{font:700 15px var(--disp);color:var(--mut)}
+.ev h3{font-size:19px;margin:1px 0 6px}
+.ev .said{font-size:14.5px;border-left:3px solid var(--rule);padding:2px 0 2px 12px;margin-bottom:8px;max-width:70ch}
+.chg{display:grid;grid-template-columns:minmax(0,220px) auto;gap:4px 14px;font-size:14px;align-items:center;max-width:720px}
+.chg .f{font-weight:600}
+.chg .tr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+/* chapter 11/12/13 */
+.screens{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.screens .sheet h3{margin-bottom:4px}
+.screens .sheet p{font-size:14.5px;margin:0}
+.files{width:100%;border-collapse:collapse;font-size:14.5px}
+.files td,.files th{border-bottom:1px solid var(--rule);padding:8px 12px 8px 0;text-align:left;vertical-align:top}
+.files th{font:600 14px var(--disp);color:var(--mut);border-bottom:2px solid var(--ink)}
+.files td:first-child{font-weight:600;white-space:nowrap}
+.files td.n{text-align:right;color:var(--mut);white-space:nowrap}
+.who{display:inline-block;width:22px;height:6px;border-radius:2px;background:var(--c);vertical-align:middle;margin-right:6px}
+
+@media (max-width:980px){
+  .page{grid-template-columns:1fr;gap:0}
+  nav.toc{position:static;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0 16px;margin-bottom:24px}
+  .pstep{grid-template-columns:34px 1fr}.pstep .d,.pstep .out{grid-column:2}.pstep .out{text-align:left}
+}
+@media (max-width:760px){
+  h1{font-size:40px}h2{font-size:27px}
+  .grid2,.grid3,.brief,.screens,.termbox,.also-terms,.proof{grid-template-columns:1fr}
+  .five{grid-template-columns:1fr 1fr}
+  .chain{grid-template-columns:repeat(2,1fr)}.term{border-bottom:1px solid var(--rule)}
+  .dots{grid-template-columns:repeat(3,1fr)}
+  .rung{grid-template-columns:60px 1fr}.rung .ex{grid-column:1/-1}
+  .fq{grid-template-columns:1fr}.chg{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){ .panel.on{animation:in .22s ease-out} @keyframes in{from{opacity:0;transform:translateY(4px)}} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="toc" aria-label="Chapters" id="toc">
+  <a href="#c1"><b>1</b>The situation</a>
+  <a href="#c2"><b>2</b>What goes in</a>
+  <a href="#c3"><b>3</b>Five words</a>
+  <a href="#c4"><b>4</b>Follow one answer</a>
+  <a href="#c5"><b>5</b>The pipeline</a>
+  <a href="#c6"><b>6</b>Trust and status</a>
+  <a href="#c7"><b>7</b>What blocks what</a>
+  <a href="#c8"><b>8</b>Monday briefing</a>
+  <a href="#c9"><b>9</b>Answer and approve</a>
+  <a href="#c10"><b>10</b>When facts change</a>
+  <a href="#c11"><b>11</b>The four screens</a>
+  <a href="#c12"><b>12</b>Keeping it honest</a>
+  <a href="#c13"><b>13</b>Map of the code</a>
+  <p class="also">Ready to defend it? <a href="why.html">The questions behind every choice</a></p>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>How Procurement Navigator works, from the ground up</h1>
+  <p>Read top to bottom. Each chapter adds one idea, and every example is real output from the Acme and Northstar deals as of 3 November 2026.</p>
+</header>
+
+<!-- 1 -->
+<section class="ch" id="c1">
+  <span class="no">Chapter 1</span>
+  <h2>The situation</h2>
+  <p class="lead">Lantern AI sells an AI assistant to large companies. Before a bank or a telecom can buy it, their risk teams run a vendor review. That review is what stalls the deal.</p>
+  <div class="grid2">
+    <div class="sheet">
+      <h3>Two deals, one person</h3>
+      <p><b>Acme National Bank</b> sent a 60-row questionnaire on 14 September and emails from its privacy and risk staff. Its October pilot target has already passed.</p>
+      <p><b>Northstar Telecom</b> has its own questionnaire and a launch target of 16 November, 13 days away.</p>
+      <p style="margin:0"><b>Jai</b>, Lantern's commercial lead, runs both and approves every answer that goes out.</p>
+    </div>
+    <div class="sheet">
+      <h3>What Jai told us hurts</h3>
+      <ul class="pains">
+        <li>Questions come in rounds (20, then 15) with repeats, additions and reused question numbers.</li>
+        <li>The answers are scattered across Slack, email, texts, drive files and past deals.</li>
+        <li>Facts change mid-deal, and the customer has to be told straight away.</li>
+        <li>Nobody keeps a central record of what each customer was told.</li>
+        <li>Evidence goes stale: a pen test from six months ago will not do.</li>
+      </ul>
+    </div>
+  </div>
+  <h3 style="margin-top:26px">What the system must show, for each deal</h3>
+  <div class="five">
+    <div>What is required<small>Every distinct need, from every round and email</small></div>
+    <div>What we know<small>Backed by evidence, with the quote</small></div>
+    <div>What is unresolved<small>Unknown, unconfirmed, conflicting, undecided</small></div>
+    <div>What is blocking<small>The root cause, not just the symptom</small></div>
+    <div>What to do next<small>Who acts, and what it unlocks</small></div>
+  </div>
+  <p class="mut small" style="margin-top:10px">These five become the five main tabs of the Deal screen. The rule above all of them: never invent an answer, and show conflicts instead of hiding them.</p>
+</section>
+
+<!-- 2 -->
+<section class="ch" id="c2">
+  <span class="no">Chapter 2</span>
+  <h2>What goes in</h2>
+  <p class="lead">22 inputs, each standing in for the system it would really come from. Folders play the role of connectors. Nothing is ever edited: new information arrives as a new input.</p>
+  <div class="inputs">
+    <div class="inp"><h3>Drive<span>11</span></h3><ul><li>Each deal's start-here note</li><li>Draft configuration per deal</li><li>An older generic product doc</li><li>Another customer's past answers (marked context only)</li><li>Company review guidance</li></ul></div>
+    <div class="inp"><h3>Vanta (evidence)<span>3</span></h3><ul><li>SOC 2 status</li><li>Pen test summary</li><li>Insurance certificate</li></ul></div>
+    <div class="inp"><h3>Email<span>2</span></h3><ul><li>Acme customer correspondence</li><li>Northstar customer correspondence</li></ul></div>
+    <div class="inp"><h3>Slack<span>2</span></h3><ul><li>Acme internal messages</li><li>Northstar internal messages</li></ul></div>
+    <div class="inp"><h3>Questionnaires<span>2</span></h3><ul><li>Acme round 1 (CSV)</li><li>Northstar round 1 (CSV)</li></ul></div>
+    <div class="inp"><h3>People and notes<span>2</span></h3><ul><li>Ownership directory: who owns which team, how fast they reply</li><li>Notes from the conversation with Jai</li></ul></div>
+  </div>
+  <p class="mut small" style="margin-top:12px">Files that appear unchanged in both deal folders (SOC 2, pen test, insurance) are detected by content and stored once, as company sources. Later inputs, like a new email or a new questionnaire round, go into an inbox folder, the way a connector would deliver them.</p>
+</section>
+
+<!-- 3 -->
+<section class="ch" id="c3">
+  <span class="no">Chapter 3</span>
+  <h2>Five words to know</h2>
+  <p class="lead">Everything in the system is one of these. Read them left to right: what arrives, what it says, what is true, what the customer needs, what someone does. Pick one.</p>
+  <div class="chain" id="chain"></div>
+  <div class="termbox" id="termbox" aria-live="polite"></div>
+  <div class="also-terms">
+    <div><b>Ask</b>One place a customer asked for something: a questionnaire row, a sentence in an email, or a topic the guidance predicts. 184 in total.</div>
+    <div><b>Catalog</b>The fixed list of 32 facts the system knows how to track, each with an owner, a proof type, an age limit and dependencies.</div>
+    <div><b>Ledger</b>The record of what Jai sent and who he asked. Each sent answer keeps a snapshot of the facts it relied on.</div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="ch" id="c4">
+  <span class="no">Chapter 4</span>
+  <h2>Follow one answer: Acme's log retention</h2>
+  <p class="lead">One thread, from the customer's question to an answer Jai can send. Use Next, or pick a step.</p>
+  <div class="stepper">
+    <div class="dots" role="tablist" id="dots">
+      <button role="tab"><b>1</b>They ask</button>
+      <button role="tab"><b>2</b>What we have</button>
+      <button role="tab"><b>3</b>Rules decide</button>
+      <button role="tab"><b>4</b>Jai chases</button>
+      <button role="tab"><b>5</b>New info</button>
+      <button role="tab"><b>6</b>Ready to answer</button>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>The customer asks, in two places</h3>
+      <p>Acme's questionnaire row Q-004 says <q class="quote">State retention for source files, prompts, responses, logs and traces.</q> Separately, Elena from Acme Privacy writes in an email asking to clarify <q class="quote">retention by data type</q>.</p>
+      <div class="verdict" style="--c:var(--model)"><b>The model merges them</b><br>Both asks become one requirement, <code>acme:Q-004</code> <q>Retention by data type</q>, with Acme's reading attached: <q class="quote">Acme wants retention broken down by data type for its configuration.</q></div>
+      <p>It needs four facts from the catalog: retention of source files, prompts and responses, app logs, and traces. We follow one: <b>app logs</b>.</p>
+      <p class="src">The questionnaire row was parsed by code, not the model. The email ask was extracted by the model, and code checked that the quote really is in the email.</p>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>What we have on file about app-log retention</h3>
+      <p>Extraction found four claims. Each has an exact quote, and the rules give each a trust tier (chapter 6).</p>
+      <table class="claims">
+        <tr><th>Tier</th><th>Says</th><th>Quote</th><th>Where it came from</th></tr>
+        <tr><td><span class="tier">Plan</span></td><td>14 days</td><td class="quote">App logs intended 14 days.</td><td class="src">Acme draft configuration (a plan, not proof it is live)</td></tr>
+        <tr><td><span class="tier t4">Hint</span></td><td>14 days</td><td class="quote">enterprise app logs should be 14d now.</td><td class="src">Anthony on Slack; the model read it as about the platform in general, not Acme</td></tr>
+        <tr><td><span class="tier t4">Hint</span></td><td>30 days</td><td class="quote">Standard application logs: 30 days.</td><td class="src">An older generic product doc</td></tr>
+        <tr><td><span class="tier t4">Hint</span></td><td>30 days?</td><td class="quote">30 days?</td><td class="src">A draft answer someone typed into the questionnaire</td></tr>
+      </table>
+      <p class="mut small">Hints are shown to Jai but can never become the answer.</p>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>Code decides the status</h3>
+      <div class="verdict" style="--c:var(--amber)"><b><span class="st unconfirmed">Unconfirmed</span>, best value 14 days</b><br>Best source is a document for this deal (a plan, not proof it is live); the owner (Engineering) has not confirmed it.</div>
+      <p>The catalog says app-log retention is proven by the owning team saying so. A plan is not enough, so the fact stays unconfirmed.</p>
+      <div class="verdict" style="--c:var(--red)"><b>And a warning about the draft answer</b><br>Questionnaire draft <q>30 days?</q> disagrees with the best source (<q>14 days</q>); it matches the generic product doc.</div>
+      <p>Without this, someone could have sent Acme the old 30-day figure from a generic document.</p>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>Jai's next move: one message to Anthony</h3>
+      <p>Anthony owns Engineering, which owns this fact. He usually replies in 3 business days, so his items go out early. Instead of an open question, the planner proposes the value to confirm, and batches everything Anthony owns into one message.</p>
+      <div class="msg"><div class="hd">To Anthony, 17 items across both deals, including:</div>
+        <ul><li>Confirm Acme app-log retention: is it 14 days?</li><li>Confirm Acme storage location: is it AWS ca-central-1?</li><li>Confirm Acme traces: is payload capture off?</li><li>Renew the pen test (Feb 2026, now out of date)</li><li>Get evidence for pen test remediation</li></ul></div>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>New information arrives</h3>
+      <p>On 4 November Anthony replies on Slack: <q class="quote">Checked the Acme deployment config. App logs are 14 days. Observability payload capture is off for Acme. Storage is AWS ca-central-1. Anthropic fallback is disabled for Acme, so OpenAI is the only model provider.</q></p>
+      <p>The system extracts one new claim per fact. This time the speaker is the owner, speaking about Acme, as settled fact.</p>
+      <div class="verdict" style="--c:var(--ok)"><b><span class="st unconfirmed">Unconfirmed</span> to <span class="st verified">Verified</span>, 14 days</b><br>Settled by the owner (Engineering) stating it. Quote: <q class="quote">App logs are 14 days.</q></div>
+      <p class="mut small">The same message also verifies storage, fallback routing, model providers and traces. Five facts, one rebuild.</p>
+    </div>
+
+    <div class="panel" role="tabpanel">
+      <h3>Ready to answer, partly</h3>
+      <p>Requirement Q-004 needs four facts. App logs and traces are now verified; source files and prompts are not. So the requirement stays <b>open</b>, with two gaps.</p>
+      <p>If Jai drafts it now, the answer may state only the verified parts. Each unverified part becomes a pending line that names the owner, for example <q>Engineering is confirming the retention period for prompts and responses.</q> The best guess stays in internal notes that only Jai sees.</p>
+      <div class="verdict" style="--c:var(--model)"><b>Round 2 adds to it</b><br>Acme's second round restates Q-004 and adds a part: how deletion requests are handled and how long deletion takes. The system marks it <q>repeat with changes</q>, so only the added part is new work.</div>
+    </div>
+
+    <div class="nav2"><button class="btn" id="prev">Back</button><span class="mut small" id="pos"></span><button class="btn primary" id="next">Next</button></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="ch" id="c5">
+  <span class="no">Chapter 5</span>
+  <h2>The pipeline that does this for everything</h2>
+  <p class="lead">The thread above is one path through eight steps. Every rebuild runs all of them over all inputs. The colour says who decides.</p>
+  <p class="small" style="display:flex;gap:18px;flex-wrap:wrap"><span><i class="who" style="--c:var(--model)"></i>The model reads, code checks it</span><span><i class="who" style="--c:var(--code)"></i>Code decides</span><span><i class="who" style="--c:var(--jai)"></i>Jai approves</span></p>
+  <div class="pipe">
+    <div class="pstep" style="--c:var(--code)"><span class="n">1</span><span class="nm">Load<small>Code</small></span><span class="d">Read every folder and the inbox into sources. Identical files across deals become one company source.</span><span class="out">22<small>sources</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">2</span><span class="nm">Extract<small>Model, then code</small></span><span class="d">One call per source: claims (fact, value, exact quote, speaker, whether it is evidence, a statement, a plan or undecided) and customer asks. Code drops any quote not found in the source and any fact not in the catalog. Questionnaire rows are parsed by code.</span><span class="out">67<small>claims, 0 quotes dropped</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">3</span><span class="nm">Merge and match<small>Model, then code</small></span><span class="d">All of a deal's asks become requirements, each linked to the facts it needs. Later rounds are matched by meaning. Code rejects ids the model was not shown, finds placeholder rows and flags reused question numbers.</span><span class="out">184 &rarr; 68<small>asks to requirements</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">4</span><span class="nm">Compare<small>Model, one label</small></span><span class="d">For two claims about one fact: agree, adds detail, conflicts, or different aspect. Identical values skip the model.</span><span class="out">pairs<small>only where needed</small></span></div>
+    <div class="pstep" style="--c:var(--code)"><span class="n">5</span><span class="nm">Resolve<small>Code</small></span><span class="d">Trust tier, proof type, age limit, conflicts and dependencies give each fact one status and a reason in plain words.
+      <div class="bar" aria-label="52 facts by status"><span style="--c:var(--ok);flex:5"></span><span style="--c:var(--amber);flex:13"></span><span style="--c:var(--red);flex:1"></span><span style="--c:var(--vio);flex:5"></span><span style="--c:var(--red);flex:2;opacity:.6"></span><span style="--c:var(--grey);flex:26"></span></div>
+      <span class="barkey small"><span class="st verified">5 verified</span><span class="st unconfirmed">13 unconfirmed</span><span class="st conflicting">1 conflicting</span><span class="st undecided">5 undecided</span><span class="st out_of_date">2 out of date</span><span class="st unknown">26 unknown</span></span></span><span class="out">52<small>facts</small></span></div>
+    <div class="pstep" style="--c:var(--code)"><span class="n">6</span><span class="nm">Plan<small>Code</small></span><span class="d">Actions only where work can start, ranked by how many answers wait on them. One message per person, waits, delays, answers at risk and updates owed.</span><span class="out">Monday<small>briefing</small></span></div>
+    <div class="pstep" style="--c:var(--model)"><span class="n">7</span><span class="nm">Draft and check<small>Model, then code</small></span><span class="d">On request, the model writes an answer from verified facts, citing claim ids. Code blocks approval if any sentence breaks the rules.</span><span class="out">draft<small>with citations</small></span></div>
+    <div class="pstep" style="--c:var(--jai)"><span class="n">8</span><span class="nm">Approve and send<small>Jai</small></span><span class="d">Jai reads each sentence with its quote, approves, and the send is logged with a snapshot of the facts it used.</span><span class="out">ledger<small>entry</small></span></div>
+  </div>
+  <p class="mut small" style="margin-top:12px">Every model call is cached on disk, keyed by its exact input. A rebuild with no new input takes under a second and gives the same result every time.</p>
+</section>
+
+<!-- 6 -->
+<section class="ch" id="c6">
+  <span class="no">Chapter 6</span>
+  <h2>How the system decides what is true</h2>
+  <p class="lead">Two ideas: every claim gets a trust tier from where and how it was said, and every fact says what kind of proof it needs. Then six questions, always in the same order, give the status.</p>
+  <h3>Trust tiers</h3>
+  <div class="ladder">
+    <div class="rung"><span><span class="tier">1</span></span><b>Evidence</b><span class="ex">A document in the evidence store (Vanta). For facts only the customer can settle, the customer's own words. <span class="mut">Example: <q>SOC 2 Type II, Jan-Dec 2025: FINAL.</q></span></span></div>
+    <div class="rung"><span><span class="tier">2</span></span><b>Owner confirmed</b><span class="ex">The person who owns that area states it as settled, on Slack, in notes or by email. <span class="mut">Example: Anthony, <q>App logs are 14 days.</q></span></span></div>
+    <div class="rung"><span><span class="tier">3</span></span><b>Plan or chat</b><span class="ex">Deal documents and drafts, or chat from someone who is not the owner. <span class="mut">Example: <q>App logs intended 14 days.</q></span></span></div>
+    <div class="rung"><span><span class="tier t4">4</span></span><b>Hint</b><span class="ex">A generic product doc, a draft answer typed into the questionnaire, or another customer's answer. Shown, never the answer. <span class="mut">Example: <q>Standard application logs: 30 days.</q></span></span></div>
+  </div>
+  <h3 style="margin-top:22px">What proof each fact needs</h3>
+  <div class="proof">
+    <div><b>A document</b>SOC 2, pen test, insurance. Only tier 1 verifies them. A Slack message saying the new report is final cannot.</div>
+    <div><b>The owner</b>Storage region, log retention, model providers. Tier 2 or better. Jai verifies these today by asking the owning team.</div>
+    <div><b>The customer</b>Acme's residency rule, the pilot's data scope. Only the customer's own words verify them; our guess is tier 3.</div>
+  </div>
+  <h3 style="margin-top:26px">Six questions, in order</h3>
+  <div class="flow">
+    <div class="fq"><span class="ask">Is there any usable claim (tier 1 to 3)?</span><span>If not: <span class="st unknown">Unknown</span></span><span class="ex">Acme residency requirement: <q>Nothing usable says anything about this.</q> Only Acme can answer.</span></div>
+    <div class="fq"><span class="ask">Does someone say it is not decided, with nothing settled above it?</span><span>Then: <span class="st undecided">Undecided</span></span><span class="ex">Acme fallback routing. Anthony: <q>for Acme probably disable if residency/legal requires it. Not finalized.</q></span></div>
+    <div class="fq"><span class="ask">Does another usable claim disagree with the best one?</span><span>Then: <span class="st conflicting">Conflicting</span></span><span class="ex">Pen test remediation. The owner says <q>Remediated; evidence needed</q>; the evidence on file says no remediation evidence. Get updated evidence.</span></div>
+    <div class="fq"><span class="ask">Is the best claim the kind of proof this fact needs?</span><span>If not: <span class="st unconfirmed">Unconfirmed</span></span><span class="ex">Acme app-log retention: a plan, but the owner has not confirmed it.</span></div>
+    <div class="fq"><span class="ask">Has it expired, or is it older than this fact's age limit?</span><span>Then: <span class="st out_of_date">Out of date</span></span><span class="ex">Pen test: dated Feb 2026, 275 days old, policy allows 183. Insurance: expired on 1 October 2026.</span></div>
+    <div class="fq end"><span class="ask">Otherwise</span><span><span class="st verified">Verified</span></span><span class="ex">SOC 2: settled by the evidence store, with the caveat <q>Also on file: 2026 audit not yet final.</q></span></div>
+  </div>
+  <p class="mut small" style="margin-top:10px">Recency: higher trust wins, and the date breaks ties. A newer but less trusted claim that disagrees does not win; it makes the fact conflicting. An older claim replaced by a newer one is superseded, not a conflict.</p>
+  <h3 style="margin-top:22px">Requirements get a status too</h3>
+  <div class="reqst">
+    <b>Ready</b><span>Every fact it needs is verified. Jai can draft and approve.</span>
+    <b>Open</b><span>Some facts are not verified yet; work can start on them.</span>
+    <b>Blocked</b><span>A fact it needs is waiting on another fact (chapter 7).</span>
+    <b>Missing text</b><span>Placeholder rows with nothing to answer, such as 37 rows reading <q>Control 24: provide the customer-specific answer</q>.</span>
+    <b>Predicted</b><span>A topic the guidance says usually comes up, not asked yet. Becomes open when the customer asks.</span>
+    <b>Umbrella, unmapped</b><span>A whole-form ask covered by its parts; or a need that no catalog fact covers, shown to Jai rather than guessed.</span>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="ch" id="c7">
+  <span class="no">Chapter 7</span>
+  <h2>What blocks what</h2>
+  <p class="lead">Some facts cannot be settled until another one is. The catalog records these dependencies, so the system can point at the root cause instead of the symptom.</p>
+  <div class="dep" aria-label="Dependency chain">
+    <div class="node root"><b>Acme residency requirement</b><span class="st unknown">Unknown</span></div><span class="link">then</span>
+    <div class="node"><b>Fallback routing</b><span class="st undecided">Undecided</span></div><span class="link">then</span>
+    <div class="node"><b>Model providers</b></div><span class="link">then</span>
+    <div class="node"><b>Inference location</b></div><span class="link">then</span>
+    <div class="node"><b>Cross-border transfers</b></div>
+  </div>
+  <p>Whether Anthropic can be used as a fallback depends on whether Acme requires processing to stay in Canada. That decides which model providers are used, where inference runs, and whether data crosses borders. Five Acme requirements wait on this one answer.</p>
+  <p>So the planner does not send Legal a question about cross-border transfers yet. It sends one question to Elena at Acme first, because that is the only place work can actually start. In chapter 10 Elena answers, and the chain starts moving.</p>
+</section>
+
+<!-- 8 -->
+<section class="ch" id="c8">
+  <span class="no">Chapter 8</span>
+  <h2>The Monday briefing</h2>
+  <p class="lead">Jai asked for one thing on Monday morning: the state of the deals, what he needs to do, what is blocking, what we are waiting for, and what is delaying things. This is it, from real output.</p>
+  <div class="brief">
+    <div class="sheet"><h3>What moves things forward</h3><ul>
+      <li>Ask each customer for the real text of 37 placeholder controls (Q-024 to Q-060)</li>
+      <li>Ask Elena at Acme about residency, the root blocker behind 5 requirements</li>
+      <li>Ask Priya at Northstar the same</li>
+      <li>Confirm incident response with Anthony: unlocks 2 answers now</li></ul></div>
+    <div class="sheet"><h3>Delays</h3><ul>
+      <li>Acme's October pilot target has passed, with 22 requirements open</li>
+      <li>Northstar: 13 days to 16 November, 22 requirements open</li>
+      <li>Pen test is out of date (275 days old)</li>
+      <li>Insurance expired on 1 October</li></ul></div>
+    <div class="sheet"><h3>Root blockers</h3><ul>
+      <li>Acme residency requirement, behind 5 requirements</li>
+      <li>Northstar residency requirement, behind 5</li>
+      <li>Acme pilot data scope, behind 2</li>
+      <li>Pen test and its remediation, behind Q-008 in both deals</li></ul></div>
+    <div class="sheet"><h3>Waiting on, updates owed</h3><ul>
+      <li>Every message Jai sends is logged, and the wait is tracked against that person's usual reply time</li>
+      <li>Overdue waits are flagged</li>
+      <li>Sent answers whose facts have changed show here as at risk or update owed (chapter 10)</li></ul></div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="ch" id="c9">
+  <span class="no">Chapter 9</span>
+  <h2>Writing and approving an answer</h2>
+  <p class="lead">Jai picks a ready requirement. The model drafts; code checks; Jai reads and approves. Here is the real draft for Acme's Q-007, <q>Provide current SOC 2 or equivalent assurance.</q></p>
+  <div class="sheet">
+    <div class="sent">Lantern AI Technologies has a final SOC 2 Type II report for January through December 2025.<div class="cite">Cites the evidence store: <q class="quote">SOC 2 Type II, Jan-Dec 2025: FINAL.</q></div></div>
+    <div class="sent">The 2026 audit is not yet final.<div class="cite">Cites the evidence store: <q class="quote">2026 audit is not yet final.</q></div></div>
+    <p style="margin:12px 0 4px"><b>Code checks before Approve is enabled</b></p>
+    <ul class="checks">
+      <li>Every answer sentence cites at least one claim.</li>
+      <li>Every cited claim belongs to a verified fact of this requirement.</li>
+      <li>Nothing cites a hint: another customer, a generic doc or a questionnaire draft.</li>
+      <li>Unverified facts appear only as pending lines naming the owner, and a pending line may not leak the best guess.</li>
+      <li>If the facts changed since the draft was made, Approve is disabled until it is redrafted.</li>
+    </ul>
+    <p class="mut small" style="margin:10px 0 0">Result for this draft: no errors, so Jai can approve. When he does, the ledger records the text and a snapshot of the SOC 2 fact as it was.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="ch" id="c10">
+  <span class="no">Chapter 10</span>
+  <h2>When facts change</h2>
+  <p class="lead">The demo story: six new inputs over three days, and what each one changes. Nothing is edited; each input is added and the whole state is rebuilt.</p>
+  <div class="tl">
+    <div class="ev" style="--c:var(--jai)"><span class="when">3 Nov</span><h3>Jai approves and sends the SOC 2 answer to Acme</h3>
+      <p class="small">The ledger stores the text and the SOC 2 fact as it was: verified, 2025 report.</p></div>
+    <div class="ev" style="--c:var(--model)"><span class="when">4 Nov, questionnaire</span><h3>Acme sends round 2</h3>
+      <div class="chg"><span class="f">Q-004</span><span>Repeat with changes: adds deletion requests</span>
+        <span class="f">Q-007</span><span>Repeat with changes: use the 2026 report if the audit is complete</span>
+        <span class="f">Q-009</span><span>Plain repeat: no new work</span>
+        <span class="f">Q-012</span><span>Same number, different question: now about monitoring, flagged as a reused number</span>
+        <span class="f">Q-062</span><span>The predicted BCP and DR test topic is now actually asked</span></div></div>
+    <div class="ev" style="--c:var(--ok)"><span class="when">4 Nov, email</span><h3>Elena answers the residency question</h3>
+      <p class="said quote">Acme requires that customer content is not processed outside Canada, including model inference and any fallback providers.</p>
+      <div class="chg"><span class="f">Acme residency requirement</span><span class="tr"><span class="st unknown">Unknown</span>to<span class="st verified">Verified</span> by the customer's own statement</span></div></div>
+    <div class="ev" style="--c:var(--ok)"><span class="when">4 Nov, Slack</span><h3>Anthony checks the deployed config</h3>
+      <div class="chg">
+        <span class="f">Storage location</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> AWS ca-central-1</span>
+        <span class="f">Fallback routing</span><span class="tr"><span class="st undecided">Undecided</span>to<span class="st verified">Verified</span> Anthropic fallback disabled</span>
+        <span class="f">Model providers</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> OpenAI</span>
+        <span class="f">App-log retention</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> 14 days</span>
+        <span class="f">Traces</span><span class="tr"><span class="st unconfirmed">Unconfirmed</span>to<span class="st verified">Verified</span> payload capture off</span></div></div>
+    <div class="ev" style="--c:var(--red)"><span class="when">5 Nov, Slack</span><h3>Anthony says the 2026 SOC 2 is final</h3>
+      <p class="said quote">The 2026 SOC 2 Type II report is final, auditors signed off last week.</p>
+      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st verified">Verified</span>to<span class="st conflicting">Conflicting</span> the owner says 2026 is final; the evidence on file is 2025</span>
+        <span class="f">Sent answer Q-007</span><span>At risk. Not yet an update owed: a chat message cannot prove a SOC 2 report.</span></div></div>
+    <div class="ev" style="--c:var(--ok)"><span class="when">6 Nov, Vanta</span><h3>The 2026 SOC 2 report lands in the evidence store</h3>
+      <p class="said quote">SOC 2 Type II report, audit period Jan 1 - Sep 30, 2026: FINAL. Report issued Oct 28, 2026. No exceptions noted.</p>
+      <div class="chg"><span class="f">SOC 2</span><span class="tr"><span class="st conflicting">Conflicting</span>to<span class="st verified">Verified</span> 2026 report, no exceptions</span>
+        <span class="f">Sent answer Q-007</span><span>Update owed: Acme was told 2025, and the verified fact is now 2026.</span></div></div>
+    <div class="ev" style="--c:var(--ok)"><span class="when">6 Nov, Vanta</span><h3>The renewed insurance certificate</h3>
+      <div class="chg"><span class="f">Insurance</span><span class="tr"><span class="st out_of_date">Out of date</span>to<span class="st verified">Verified</span> CAD 5,000,000, Oct 2026 to Oct 2027</span></div></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="ch" id="c11">
+  <span class="no">Chapter 11</span>
+  <h2>The four screens</h2>
+  <p class="lead">A Streamlit app over the same state. Run it with <code>.venv/bin/streamlit run app.py</code>.</p>
+  <div class="screens">
+    <div class="sheet"><h3>Monday briefing</h3><p>What changed since the last rebuild, each deal's state, Jai's to-dos, root blockers, one message per person with what it unlocks, waits, delays and updates owed.</p></div>
+    <div class="sheet"><h3>Deal</h3><p>Seven tabs: what is required, what we know, what is unresolved, what is blocking, what to do next, fact detail (every claim with its tier and quote), and rounds (how round 2 matched round 1).</p></div>
+    <div class="sheet"><h3>Approvals</h3><p>Pick a ready requirement, draft it, read each sentence with its cited quote, and approve and send. Approve is disabled while any check fails.</p></div>
+    <div class="sheet"><h3>Add input</h3><p>Add one of the six demo inputs, or paste your own email, Slack message or questionnaire. The state rebuilds and the briefing shows what changed. Move the as-of date to watch deadlines and expiry shift.</p></div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="ch" id="c12">
+  <span class="no">Chapter 12</span>
+  <h2>Keeping it honest</h2>
+  <p class="lead">How we know it does what it says, and where it does not yet.</p>
+  <div class="grid3">
+    <div class="sheet"><h3>36 of 36 eval checks</h3><p class="small" style="margin:0">An answer key written from reading the case: statuses, conflicts, round matches, flags, and every step of the demo story.</p></div>
+    <div class="sheet"><h3>47 unit tests</h3><p class="small" style="margin:0">Rules, stable ids, round matching, impact ranking and red-team cases, all with no network.</p></div>
+    <div class="sheet"><h3>Red team</h3><p class="small" style="margin:0">Prompt injection, fake evidence, broken files, conflicting sources, future dates. Five real bugs found and fixed.</p></div>
+    <div class="sheet"><h3>A third customer</h3><p class="small" style="margin:0">Harbor Regional Health, a hospital with HIPAA needs. It ran with no code change; healthcare facts needed catalog entries only.</p></div>
+    <div class="sheet"><h3>Cached model calls</h3><p class="small" style="margin:0">Same input, same output, offline. Evals prove the rules, not yet how much the model varies between runs.</p></div>
+    <div class="sheet"><h3>Known limits</h3><p class="small" style="margin:0">Withdrawn requirements stay open; a bridge letter looks ready; adding a catalog fact re-reads everything. Listed in <a href="why.html#h-lim">the why page</a>.</p></div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="ch" id="c13">
+  <span class="no">Chapter 13</span>
+  <h2>Map of the code</h2>
+  <p class="lead">About 2,400 lines of Python. Each file does one step.</p>
+  <table class="files">
+    <tr><th>File</th><th>What it does</th><th>Who decides</th><th>Lines</th></tr>
+    <tr><td>pn/sources.py</td><td>Load folders and the inbox; parse questionnaires; find placeholder rows; reject fake evidence</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">202</td></tr>
+    <tr><td>pn/extract.py</td><td>Read each source into claims and asks; drop quotes not in the source</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">170</td></tr>
+    <tr><td>pn/requirements.py</td><td>Merge asks into requirements; match later rounds; stable ids</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">174</td></tr>
+    <tr><td>pn/resolve.py</td><td>Trust tiers, compare labels, the six status questions, dependencies</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">290</td></tr>
+    <tr><td>pn/planner.py</td><td>Actions, ranking, messages per person, waits, delays, updates owed</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">318</td></tr>
+    <tr><td>pn/drafting.py</td><td>Draft an answer from verified facts; the checker</td><td><i class="who" style="--c:var(--model)"></i>Model, checked</td><td class="n">127</td></tr>
+    <tr><td>pn/engine.py</td><td>Runs the steps in order and builds the whole state</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">231</td></tr>
+    <tr><td>pn/llm.py</td><td>One way to call the model: strict JSON out, cached on disk</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">104</td></tr>
+    <tr><td>pn/ledger.py, models.py</td><td>What was sent and asked; the dataclasses</td><td><i class="who" style="--c:var(--code)"></i>Code</td><td class="n">136</td></tr>
+    <tr><td>app.py</td><td>The four screens</td><td><i class="who" style="--c:var(--jai)"></i>Jai uses it</td><td class="n">669</td></tr>
+    <tr><td>config/*.yaml</td><td>The catalog of 32 facts, trust and timing policy, deals and connectors</td><td>Jai can edit</td><td class="n"></td></tr>
+  </table>
+</section>
+</main>
+</div>
+
+<script>
+if (getComputedStyle(document.documentElement).getPropertyValue("--background").trim()) document.documentElement.classList.add("t3");
+
+// chapter 3: the five words
+const TERMS = [
+ ["Source","22","One input exactly as it arrived: an email thread, a Slack export, a drive file, a Vanta document, a questionnaire. Never edited.","acme/03_internal/internal_messages.txt, from Slack."],
+ ["Claim","67","One thing a source says about one fact, with the exact quote, who said it, and whether it is evidence, a statement, a plan or undecided.","From the Acme draft config: app-log retention is “14 days”, quote “App logs intended 14 days.”"],
+ ["Fact","52","One thing that is true or not, from the catalog. Company facts (SOC 2) are shared by every deal; deal facts (Acme residency) are not. Each gets one status from its claims.","acme.retention_app_logs: unconfirmed, best value 14 days."],
+ ["Requirement","68","One distinct thing a customer needs, merged from every place they asked. It points at the facts an answer depends on.","acme:Q-004, Retention by data type, needs four retention facts."],
+ ["Action","many","Something one person can do today: confirm, get evidence, renew, decide, ask the customer, approve, send an update. Ranked by how many answers wait on it.","Anthony: confirm Acme app-log retention, is it 14 days?"],
+];
+const chain=document.getElementById("chain"), tb=document.getElementById("termbox");
+TERMS.forEach((t,i)=>{const b=document.createElement("button");b.className="term";b.innerHTML=`<span class="w">${t[0]}</span><span class="c">${t[1]}${t[1]==="many"?"":" now"}</span>`;b.onclick=()=>term(i);chain.appendChild(b)});
+function term(i){[...chain.children].forEach((b,j)=>b.setAttribute("aria-pressed",i===j));const t=TERMS[i];
+  tb.innerHTML=`<div><h4>What it is</h4>${t[2]}</div><div><h4>Real example</h4>${t[3]}</div>`}
+term(0);
+
+// chapter 4: the stepper
+const dots=[...document.querySelectorAll("#dots button")], panels=[...document.querySelectorAll(".panel")];
+const prev=document.getElementById("prev"), next=document.getElementById("next"), pos=document.getElementById("pos");
+let at=0;
+function go(i){at=i;dots.forEach((d,j)=>{d.setAttribute("aria-selected",i===j);d.classList.toggle("done",j<i)});
+  panels.forEach((p,j)=>p.classList.toggle("on",i===j));prev.disabled=i===0;next.disabled=i===panels.length-1;
+  pos.textContent=`Step ${i+1} of ${panels.length}`}
+dots.forEach((d,i)=>d.onclick=()=>go(i));prev.onclick=()=>go(at-1);next.onclick=()=>go(at+1);go(0);
+
+// highlight the chapter in view
+const links=[...document.querySelectorAll("#toc a[href^='#c']")];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id))}}),{rootMargin:"-30% 0px -60% 0px"});
+document.querySelectorAll("section.ch").forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
