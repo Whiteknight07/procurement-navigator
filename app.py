@@ -12,7 +12,7 @@ from pathlib import Path
 import streamlit as st
 
 from pn import drafting, engine, ledger, llm
-from pn.planner import batch_message, fact_key, label
+from pn.planner import LIVE, batch_message, fact_key, label
 
 ROOT = Path(__file__).parent
 INBOX = ROOT / "state" / "inbox"
@@ -246,6 +246,15 @@ if "changes" in st.session_state:
             st.caption("Nothing changed: the new input agreed with what we already knew.")
 
 
+def needed_by(keys) -> str:
+    """Requirements that need any of these questions, e.g. "Q-004 Retention by data type, Q-012 …"."""
+    keys = set(keys)
+    rs = [r for d, lst in S.reqs.items() for r in lst if LIVE(r)   # same answers "unblocks" counts
+          and any(fact_key(d, n, S.catalog) in keys for n in r.facts)]
+    names = [f"{r.id.split(':')[1]} {r.title}" + ("" if len(S.reqs) < 2 else f" ({DN[r.deal]})") for r in rs]
+    return ", ".join(names[:5]) + (f", and {len(names) - 5} more" if len(names) > 5 else "")
+
+
 def req_by_id(rid):
     for r in S.reqs.get(rid.split(":")[0], []):
         if r.id == rid:
@@ -350,8 +359,10 @@ def briefing():
                          f"usually replies in {items[0].reply_days:g} business days"):
             for a in items:
                 imp = impact_text(a)
+                need = needed_by(a.facts)
                 st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}"
-                            + (f"  \n  :green[{imp}]" if imp else ""))
+                            + (f"  \n  :green[{imp}]" if imp else "")
+                            + (f"  \n  :gray[Answers it feeds: {need}]" if need else ""))
             msg = batch_message(who, items, S)
             st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
             if st.button(f"I sent this to {who}", key=f"ask-{who}",
@@ -450,6 +461,7 @@ def deal_page():
                     st.markdown(f"{badge(f.status)} **{label(k)}**, owner {owner}"
                                 + (f". Best guess \"{f.value}\"" if f.value else "")
                                 + f"  \n:gray[{f.reason}]"
+                                + (f"  \n:blue[Needed by: {needed_by([k])}]" if needed_by([k]) else "")
                                 + (f"  \n:red[Blocked by {', '.join(label(b) for b in f.blocked_by)}]"
                                    if f.blocked_by else ""))
     with tabs[3]:
