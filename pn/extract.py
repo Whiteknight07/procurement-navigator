@@ -111,6 +111,9 @@ def extract_source(src: Source, deal_names: dict, catalog: dict, offline=False,
 def to_objects(src: Source, out: dict) -> tuple[list[Claim], list[dict], list[Ask], list[str]]:
     """Turn model output into objects, dropping anything whose quote is not in the source."""
     claims, gaps, asks, dropped = [], [], [], []
+    # Content-hash ids are unique in 6 characters; added inputs ("in-1762181234_user") are not,
+    # so two pasted inputs would get the same claim and ask ids. Use their full id.
+    tag = src.id if src.added else src.id[:6]
     for i, c in enumerate(out.get("claims", [])):
         if not quote_in(c["quote"], src.text):
             dropped.append(f"claim quote not in source: {c['quote'][:60]}")
@@ -118,7 +121,7 @@ def to_objects(src: Source, out: dict) -> tuple[list[Claim], list[dict], list[As
         if c["fact"] == "other":
             continue
         claims.append(Claim(
-            id=f"C-{src.id[:6]}-{i}", source_id=src.id, deal=src.deal, fact=c["fact"],
+            id=f"C-{tag}-{i}", source_id=src.id, deal=src.deal, fact=c["fact"],
             value=c["value"], quote=c["quote"], speaker=c["speaker"] or src.author,
             applies_to=c["applies_to"], assertion=c["assertion"],
             as_of_date=_d(c["as_of_date"]), valid_until=_d(c["valid_until"]), note=c["note"]))
@@ -137,7 +140,7 @@ def to_objects(src: Source, out: dict) -> tuple[list[Claim], list[dict], list[As
         if src.system != "email" and a["kind"] != "predicted":
             continue   # only the customer's own messages create customer requirements
         origin = "predicted" if a["kind"] == "predicted" else "customer"
-        asks.append(Ask(id=f"{src.deal or 'co'}:{src.id[:6]}:{i}", deal=src.deal, origin=origin,
+        asks.append(Ask(id=f"{src.deal or 'co'}:{tag}:{i}", deal=src.deal, origin=origin,
                         text=a["text"], quote=a["quote"], source_id=src.id, who=a["who"],
                         track=a["track"], kind=a["kind"], date_text=a["due_date"]))
     return claims, gaps, asks, dropped

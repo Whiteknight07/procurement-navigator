@@ -1,0 +1,37 @@
+# Deal-desk theme: pale columnar-pad paper, graphite ink, ledger-ink navy for actions.
+# Status colours are one per family and used the same way on every screen:
+#   green = verified / ready, amber (orange) = needs someone to confirm or prove,
+#   red = conflicting / stale / expired / blocked, violet = undecided, gray = unknown.
+
+[theme]
+base = "light"
+primaryColor = "#24467A"
+backgroundColor = "#FAFBF8"
+secondaryBackgroundColor = "#E9EEE7"
+textColor = "#26302E"
+borderColor = "#CBD5CA"
+showWidgetBorder = true
+linkColor = "#24467A"
+
+greenColor = "#2E7D4F"
+orangeColor = "#B8770B"
+redColor = "#B53B33"
+violetColor = "#6A4C9C"
+grayColor = "#7F8A85"
+blueColor = "#24467A"
+yellowColor = "#B8960B"
+
+font = "Public Sans:https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap, sans-serif"
+headingFont = "Archivo Narrow:https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&display=swap, sans-serif"
+headingFontWeights = [700, 650, 600, 600, 600, 600]
+headingFontSizes = ["2.1rem", "1.6rem", "1.25rem", "1.05rem", "1rem", "0.95rem"]
+baseFontSize = 15
+baseRadius = "0.3rem"
+buttonRadius = "0.3rem"
+
+[theme.sidebar]
+backgroundColor = "#E9EEE7"
+secondaryBackgroundColor = "#FAFBF8"
+
+[client]
+toolbarMode = "minimal"

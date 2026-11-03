@@ -133,11 +133,12 @@ def parse_questionnaire(src: Source) -> tuple[list[Ask], list[dict]]:
 
     Returns (asks, draft_answers) where draft_answers are answers already typed into the sheet.
     """
-    rows = list(csv.DictReader(io.StringIO(src.text)))
+    # short rows give None for missing cells; rows with no question are not asks
+    rows = [r for r in csv.DictReader(io.StringIO(src.text)) if (r.get("question") or "").strip()]
     shape = lambda q: _TEMPLATE_DIGITS.sub("#", q.strip().lower())
     counts: dict[str, int] = {}
     for r in rows:
-        counts[shape(r.get("question", ""))] = counts.get(shape(r.get("question", "")), 0) + 1
+        counts[shape(r["question"])] = counts.get(shape(r["question"]), 0) + 1
     asks, drafts = [], []
     for r in rows:
         q = (r.get("question") or "").strip()

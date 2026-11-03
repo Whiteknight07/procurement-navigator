@@ -115,6 +115,8 @@ def match_round(deal: str, round_no: int, new_asks: list[Ask], reqs: list[Requir
     out = llm.call_json("match", VERSION, MATCH_SYSTEM, user, schema, offline=offline)
 
     by_req = {r.id: r for r in reqs}
+    # the schema enum also lists the "no question text" bucket, but the model never saw it
+    shown = {r.id for r in reqs if r.status != "missing_text"}
     earlier_qids = {all_asks[i].qid: all_asks[i] for r in reqs for i in r.ask_ids
                     if i in all_asks and all_asks[i].qid}
     results, seen = [], set()
@@ -124,7 +126,7 @@ def match_round(deal: str, round_no: int, new_asks: list[Ask], reqs: list[Requir
         seen.add(m["ask_id"])
         a = next(x for x in new_asks if x.id == m["ask_id"])
         rel, rid = m["relation"], m["requirement_id"]
-        if rel != "new" and rid not in by_req:   # model named a requirement it was not shown
+        if rel != "new" and rid not in shown:   # model named a requirement it was not shown
             rel, rid = "new", "none"
         facts = [k for k in m["facts"] if k in catalog["facts"]]
         reused = None

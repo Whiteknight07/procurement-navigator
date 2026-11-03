@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import html
 import json
 import shutil
 import time
-from datetime import date
 from pathlib import Path
 
 import streamlit as st
@@ -19,16 +19,99 @@ SAMPLES = ROOT / "data" / "simulated" / "inputs"
 
 st.set_page_config(page_title="Procurement Navigator", layout="wide")
 
-COLOR = {"verified": "green", "ready": "green", "needs_confirmation": "orange", "needs_proof": "orange",
-         "open": "orange", "conflicting": "red", "stale": "red", "expired": "red", "blocked": "red",
-         "undecided": "violet", "unknown": "gray", "missing_text": "gray", "predicted": "blue",
-         "umbrella": "gray", "unmapped": "gray", "update_owed": "orange", "at_risk": "red"}
+# One colour per status family, used on every screen (theme colours are set in .streamlit/config.toml).
+COLOR = {"verified": "green", "ready": "green",
+         "needs_confirmation": "orange", "needs_proof": "orange", "open": "orange", "update_owed": "orange",
+         "conflicting": "red", "stale": "red", "expired": "red", "blocked": "red", "at_risk": "red",
+         "undecided": "violet",
+         "unknown": "gray", "missing_text": "gray", "umbrella": "gray", "unmapped": "gray",
+         "predicted": "blue"}
 NICE = {"needs_confirmation": "needs confirmation", "needs_proof": "needs proof",
-        "missing_text": "no question text", "update_owed": "update owed", "at_risk": "at risk"}
+        "missing_text": "no question text", "update_owed": "update owed", "at_risk": "at risk",
+        "umbrella": "covers others", "unmapped": "no facts mapped"}
+HEX = {"green": "#2E7D4F", "orange": "#B8770B", "red": "#B53B33", "violet": "#6A4C9C",
+       "gray": "#7F8A85", "blue": "#24467A"}
+MEANING = [  # the status key, in the order Jai should care about
+    ("conflicting", "two trusted sources disagree"),
+    ("expired", "past the expiry date in its source"),
+    ("stale", "proof is older than the policy allows"),
+    ("undecided", "someone still has to make the call"),
+    ("needs_proof", "the owner said it; we still need the document"),
+    ("needs_confirmation", "best source is not the owner; the owner must confirm"),
+    ("unknown", "nothing usable says anything yet"),
+    ("verified", "settled at the trust level the fact requires"),
+]
+LADDER = [  # trust tiers from config/policy.yaml, strongest first
+    ("Vanta evidence, or the customer's own statement", 1),
+    ("Owner confirmation", 2),
+    ("A document drafted for this deal", 3),
+    ("Internal chat", 4),
+    ("Generic product doc, or a draft already in the questionnaire", 5),
+    ("Another customer's answer", 9),
+]
+
+
+def nice(status: str) -> str:
+    return NICE.get(status, status)
 
 
 def badge(status: str) -> str:
-    return f":{COLOR.get(status, 'gray')}-background[{NICE.get(status, status)}]"
+    return f":{COLOR.get(status, 'gray')}-badge[{nice(status)}]"
+
+
+def trust(c, src) -> str:
+    """Short trust label for a claim, in the words Jai uses."""
+    r = c.tier_reason
+    if src.system == "vanta" or r.startswith("the evidence store"):
+        return "Vanta evidence"
+    for prefix, short in (("the customer's own", "customer's own statement"),
+                          ("the owner (", "owner confirmation"),
+                          ("a document for this deal", "deal draft"),
+                          ("internal chat", "internal chat"), ("our own guess", "internal chat"),
+                          ("a draft typed", "questionnaire draft"), ("a generic product", "generic doc"),
+                          ("another customer", "another customer's answer (never counts)")):
+        if r.startswith(prefix):
+            return short
+    return r or src.system
+
+
+def tidy(s: str) -> str:
+    """Smooth punctuation where planner text joins a sentence to a clause."""
+    return str(s).replace(".:", ":").replace(". (", " (")
+
+
+def esc(s) -> str:
+    return html.escape(str(s or ""))
+
+
+def plural(n: int, word: str, many: str | None = None) -> str:
+    return f"{n} {word if n == 1 else (many or word + 's')}"
+
+
+st.html("""<style>
+h1, h2, h3 { letter-spacing: -0.01em; }
+.pn-lede { font-size: 1.12rem; line-height: 1.5; max-width: 46rem; margin: -0.4rem 0 0.6rem; }
+.pn-bar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; margin: 0.35rem 0 0.4rem;
+          background: #E9EEE7; max-width: 30rem; }
+.pn-bar span { display: block; height: 100%; }
+.pn-sent { border-left: 4px solid var(--c); padding: 0.15rem 0 0.25rem 0.8rem; margin: 0 0 0.9rem;
+           max-width: 52rem; }
+.pn-sent p { margin: 0 0 0.3rem; font-size: 1.04rem; line-height: 1.45; }
+.pn-sent .pn-pending { color: #7A5207; }
+.pn-cite { font-size: 0.86rem; line-height: 1.4; color: #4A5551; margin: 0.15rem 0; }
+.pn-cite b { color: #26302E; font-weight: 600; }
+.pn-cite q { font-style: italic; }
+.pn-flag { font-size: 0.86rem; color: #9A2F28; margin: 0.15rem 0; font-weight: 600; }
+.pn-ladder { margin: 0.2rem 0 0.4rem; }
+.pn-rung { display: flex; align-items: center; gap: 0.5rem; font-size: 0.84rem; line-height: 1.25;
+           margin: 0 0 0.3rem; }
+.pn-rung i { display: block; flex: none; height: 8px; background: #24467A; border-radius: 1px; }
+.pn-rung.never { color: #7F8A85; text-decoration: line-through; }
+.pn-rung.never i { background: repeating-linear-gradient(90deg, #B53B33 0 3px, transparent 3px 6px); }
+.st-key-changes { border-left: 4px solid #24467A; padding-left: 0.9rem; background: #EEF2F8;
+                  border-radius: 0 0.3rem 0.3rem 0; padding: 0.6rem 0.9rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>""")
 
 
 # ---------------- state ----------------
@@ -42,7 +125,7 @@ def snapshot(s) -> dict:
 def rebuild(note: str | None = None):
     prev = st.session_state.get("state")
     as_of = st.session_state.get("as_of")
-    with st.spinner("Rebuilding from inputs (new inputs go through the model, the rest is cached)..."):
+    with st.spinner("Rebuilding from all inputs. New inputs go through the model; the rest is cached."):
         t = time.time()
         s = engine.build(as_of=as_of)
         st.session_state.build_secs = round(time.time() - t, 1)
@@ -56,16 +139,18 @@ def diff(a: dict, b: dict, s) -> list[str]:
     for k, (st_b, v_b) in b["facts"].items():
         st_a, v_a = a["facts"].get(k, ("(new)", None))
         if (st_a, v_a) != (st_b, v_b) and (st_a != "unknown" or st_b != "unknown"):
-            out.append(f"Fact **{label(k, s.catalog)}**: {badge(st_a)} → {badge(st_b)}"
-                       + (f" · now \"{v_b}\"" if v_b and v_b != v_a else ""))
+            was = "new" if st_a == "(new)" else badge(st_a)
+            out.append(f"**{label(k, s.catalog)}** went from {was} to {badge(st_b)}"
+                       + (f", now \"{v_b}\"" if v_b and v_b != v_a else ""))
     for k, (st_b, t) in b["reqs"].items():
         st_a = a["reqs"].get(k, ("(new)", ""))[0]
         if st_a != st_b:
-            out.append(f"Requirement **{t}** ({k}): {badge(st_a) if st_a != '(new)' else 'new'} → {badge(st_b)}")
+            was = "new" if st_a == "(new)" else badge(st_a)
+            out.append(f"Requirement **{t}** ({k.split(':')[1]}) went from {was} to {badge(st_b)}")
     for t in sorted(b["actions"] - a["actions"]):
-        out.append(f"New action: {t}")
+        out.append(f"New to do: {t}")
     for t in sorted(a["actions"] - b["actions"]):
-        out.append(f"Action no longer needed: ~~{t}~~")
+        out.append(f"No longer needed: ~~{t}~~")
     return out
 
 
@@ -73,25 +158,56 @@ if "state" not in st.session_state:
     st.session_state.as_of = None
     rebuild()
 S = st.session_state.state
+P = S.plan
+DN = S.deal_names
+PAGES = ["Monday briefing", "Deal page", "Facts", "Approvals", "Rounds", "Add input"]
+
+
+def go_approve(req_id: str):
+    """Jump from the briefing straight to the approval card for one requirement."""
+    st.session_state.nav = "Approvals"
+    st.session_state["ap-deal"] = req_id.split(":")[0]
+    st.session_state["ap-req"] = req_id
+
+
+def ladder_html() -> str:
+    rows = []
+    for text, tier in LADDER:
+        width = 0 if tier == 9 else 64 - (tier - 1) * 12
+        cls = "pn-rung never" if tier == 9 else "pn-rung"
+        rows.append(f'<div class="{cls}"><i style="width:{width or 40}px"></i><span>{esc(text)}</span></div>')
+    return '<div class="pn-ladder">' + "".join(rows) + "</div>"
+
+
+def status_key():
+    st.markdown("**Which source wins.** Higher on the ladder beats lower; on a tie, the most recent wins.")
+    st.html(ladder_html())
+    st.caption("Another customer's answer is shown as a hint and never becomes our answer.")
+    st.markdown("**What each status means**")
+    st.markdown("  \n".join(f"{badge(s)} {m}" for s, m in MEANING))
+
 
 # ---------------- sidebar ----------------
 
 with st.sidebar:
     st.title("Procurement Navigator")
-    st.caption("Lantern AI · vendor reviews")
-    page = st.radio("Screen", ["Monday briefing", "Deal page", "Facts", "Approvals", "Rounds",
-                               "Add input"], label_visibility="collapsed")
+    st.caption("Lantern AI vendor reviews, for Jai")
+    page = st.radio("Screen", PAGES, key="nav", label_visibility="collapsed")
     st.divider()
-    new_date = st.date_input("As-of date (today)", value=S.as_of)
+    new_date = st.date_input("Today's date", value=S.as_of,
+                             help="Move it to see deadlines pass and evidence expire.")
     if new_date != S.as_of:
         st.session_state.as_of = new_date
-        rebuild(f"As-of date moved to {new_date:%b %d, %Y}")
+        rebuild(f"Today's date moved to {new_date:%-d %B %Y}")
         st.rerun()
-    st.caption(f"Built in {st.session_state.get('build_secs', 0)}s · {len(S.sources)} sources · "
-               f"{len(S.claims)} claims · {len(S.facts)} facts")
+    st.caption(f"Rebuilt in {st.session_state.get('build_secs', 0)}s from {len(S.sources)} sources "
+               f"({len(S.claims)} claims, {len(S.facts)} facts).")
     if S.errors:
         st.error("\n".join(S.errors))
-    if st.button("Reset demo (clear added inputs and ledger)"):
+    with st.expander("How facts are decided"):
+        status_key()
+    if st.button("Clear added inputs and the ledger",
+                 help="Resets the demo: removes inputs you added and every approval, send and ask."):
         for p in INBOX.glob("*.json"):
             p.unlink()
         ledger.reset()
@@ -102,22 +218,18 @@ with st.sidebar:
 
 if "changes" in st.session_state:
     note, changes = st.session_state.changes
-    with st.container(border=True):
-        c1, c2 = st.columns([6, 1])
-        c1.markdown(f"**What changed** · {note}")
-        if c2.button("Dismiss"):
+    with st.container(key="changes"):
+        c1, c2 = st.columns([6, 1], vertical_alignment="center")
+        c1.markdown(f"#### What changed after: {note}")
+        if c2.button("Dismiss", width="stretch"):
             st.session_state.pop("changes")
             st.rerun()
         if changes:
-            for line in changes[:25]:
-                st.markdown(f"- {line}")
+            st.markdown("\n".join(f"- {line}" for line in changes[:25]))
             if len(changes) > 25:
-                st.caption(f"... and {len(changes) - 25} more")
+                st.caption(f"And {len(changes) - 25} more.")
         else:
-            st.caption("Nothing changed.")
-
-P = S.plan
-DN = S.deal_names
+            st.caption("Nothing changed: the new input agreed with what we already knew.")
 
 
 def req_by_id(rid):
@@ -126,148 +238,194 @@ def req_by_id(rid):
             return r
 
 
+def bar(counts: list[tuple[str, int]]) -> str:
+    total = sum(n for _, n in counts) or 1
+    return '<div class="pn-bar">' + "".join(
+        f'<span style="width:{100 * n / total:.1f}%;background:{HEX[COLOR[s]]}" title="{n} {nice(s)}"></span>'
+        for s, n in counts if n) + "</div>"
+
+
+DELAY = {"deadline_passed": ("red", "deadline passed"), "deadline_close": ("orange", "deadline close"),
+         "expires_before_target": ("orange", "expires before target"), "stale": ("red", "stale"),
+         "expired": ("red", "expired"), "overdue_wait": ("red", "overdue")}
+
+
 # ---------------- Monday briefing ----------------
 
 def briefing():
-    st.header(f"Monday briefing · {S.as_of:%A %b %d, %Y}")
-    cols = st.columns(len(DN))
+    jai = [a for a in P["actions"] if a.who == "Jai"]
+    approve = [a for a in jai if a.kind == "approve"]
+    updates = [a for a in jai if a.kind == "send_update"]
+    blockers = P["blockers"]
+    held = len({r for b in blockers for r in b["reqs"]})
+    st.title(f"Briefing for {S.as_of:%A %-d %B}")
+    parts = []
+    if updates:
+        parts.append(f"{plural(len(updates), 'answer')} we already sent {'needs' if len(updates) == 1 else 'need'} an update")
+    parts.append(f"{plural(len(approve), 'answer is', 'answers are')} ready for you to approve")
+    parts.append(f"{plural(len(blockers), 'root blocker')} hold up {plural(held, 'requirement')}")
+    parts.append(f"{plural(len(P['batches']), 'person', 'people')} need a message from you")
+    st.html(f'<p class="pn-lede">{esc(", ".join(parts[:-1]) + ", and " + parts[-1])}.</p>')
+
+    cols = st.columns(len(DN), gap="large")
     for col, (deal, name) in zip(cols, DN.items()):
         rs = [r for r in S.reqs[deal] if r.status not in ("predicted", "umbrella")]
         n = lambda s: sum(1 for r in rs if r.status == s)
-        with col.container(border=True):
+        no_text = sum(len(r.ask_ids) for r in rs if r.status == "missing_text")
+        with col:
             st.subheader(name)
-            for t in S.timeline[deal]:
-                if t.date_text:
-                    st.caption(f"Target: {t.text}")
-            a, b, c, d = st.columns(4)
-            a.metric("Ready", n("ready"))
-            b.metric("Open", n("open"))
-            c.metric("Blocked", n("blocked"))
-            d.metric("No text", sum(len(r.ask_ids) for r in rs if r.status == "missing_text"))
+            for d in P["delays"]:
+                if d["deal"] == deal and d["kind"] in ("deadline_passed", "deadline_close"):
+                    c, t = DELAY[d["kind"]]
+                    st.markdown(f":{c}-badge[{t}] {tidy(d['text'])}")
+            st.html(bar([("ready", n("ready")), ("open", n("open")), ("blocked", n("blocked"))]))
+            st.markdown(f"**{n('ready')}** ready, **{n('open')}** open, **{n('blocked')}** blocked"
+                        + (f". {no_text} questionnaire rows have no real question text yet." if no_text else "."))
 
-    jai = [a for a in P["actions"] if a.who == "Jai"]
-    st.subheader("What you need to do")
-    if not jai and not P["batches"]:
-        st.caption("Nothing for you right now.")
-    for a in jai:
-        st.markdown(f"- **{a.title}** · {', '.join(DN[d] for d in a.deals)} · {a.detail}")
-    st.markdown(f"- **Send {len(P['batches'])} consolidated messages** (one per person, each item "
-                f"with our current best answer, so they only confirm or correct). See *What moves things forward*.")
-
-    left, right = st.columns(2)
+    st.divider()
+    left, right = st.columns([1, 1], gap="large")
     with left:
-        st.subheader("Blockers")
-        st.caption("Root causes: fix these and everything behind them can move.")
-        for b in P["blockers"][:7]:
-            f = S.facts[b["fact"]]
-            with st.container(border=True):
-                st.markdown(f"**{label(b['fact'], S.catalog)}** {badge(f.status)} · holds up "
-                            f"**{len(b['reqs'])}** requirement(s)")
-                st.caption(f.reason)
-                for c in b["chains"][:2]:
-                    st.caption(f"↳ {c}")
-    with right:
-        st.subheader("What's delaying")
-        for d in P["delays"]:
-            st.markdown(f"- {badge('expired' if d['kind'] in ('expired', 'deadline_passed', 'overdue_wait') else 'needs_proof')} "
-                        f"{('**' + d['deal'] + '** · ') if d['deal'] else ''}{d['text']}")
-        st.subheader("Waiting on")
-        if not P["waits"]:
-            st.caption("Nobody yet. Send the messages below and they show up here, with an overdue "
-                       "flag based on each person's usual reply time.")
-        for w in P["waits"]:
-            st.markdown(f"- **{w['who']}** since {w['since']} · {len(w['facts'])} item(s) · "
-                        f"usually {w['expected_days']} business days " +
-                        (badge("expired") + " overdue" if w["overdue"] else ""))
-        if P["updates"]:
-            st.subheader("Answers already sent that changed")
-            for u in P["updates"]:
+        st.header("For you to do")
+        if not jai and not P["batches"]:
+            st.caption("Nothing needs you right now.")
+        for a in updates:
+            st.markdown(f"{badge('update_owed')} **{a.title}**  \n:gray[{a.detail}]")
+        for u in P["updates"]:
+            if u["kind"] == "at_risk":
                 r = req_by_id(u["req"])
-                st.markdown(f"- {badge(u['kind'])} **{r.title if r else u['req']}** "
-                            f"({DN[u['deal']]}, sent {u['sent_on']}): " +
-                            "; ".join(f"{label(c['fact'], S.catalog)} {c['was']['status']} → {c['now']['status']}"
-                                      for c in u["changes"]))
+                st.markdown(f"{badge('at_risk')} **{r.title if r else u['req']}**, sent to {DN[u['deal']]} on "
+                            f"{u['sent_on']}, may now be out of date: "
+                            + "; ".join(f"{label(c['fact'], S.catalog)} is now {nice(c['now']['status'])}"
+                                        for c in u["changes"])
+                            + ". Hold the update until it is verified.")
+        for a in approve:
+            rid = next((r.id for r in P["ready"] if a.title.endswith(r.title) and r.deal in a.deals), None)
+            c1, c2 = st.columns([3, 1.6], vertical_alignment="center")
+            c1.markdown(f"{badge('ready')} **{a.title.removeprefix('Approve answer: ')}** for {DN[a.deals[0]]}")
+            if rid:
+                c2.button("Review answer", key=f"go-{rid}", on_click=go_approve, args=(rid,),
+                          width="stretch")
+        if P["batches"]:
+            st.markdown(f"**Send {plural(len(P['batches']), 'message')}**, one per person, below. Each item "
+                        "carries our current best answer so they only confirm or correct it.")
+        if S.draft_flags:
+            st.subheader("Pre-filled questionnaire answers not to send")
+            for f in S.draft_flags:
+                st.markdown(f"- {f['text']}")
+    with right:
+        st.header("Root blockers")
+        st.caption("Fix these and everything waiting behind them can move.")
+        for b in blockers[:6]:
+            f = S.facts[b["fact"]]
+            st.markdown(f"{badge(f.status)} **{label(b['fact'], S.catalog)}** holds up "
+                        f"**{plural(len(b['reqs']), 'requirement')}**  \n:gray[{f.reason}]")
+            for c in b["chains"][:1]:
+                st.caption(f"↳ {c}")
+        if len(blockers) > 6:
+            st.caption(f"{len(blockers) - 6} smaller blockers are on each deal page.")
 
-    st.subheader("What moves things forward")
-    st.caption("Only the frontier: things nobody is blocked from doing today. Ranked by how many "
-               "requirements each unblocks, then slowest reply first (start the slow ones now).")
+    st.divider()
+    st.header("What moves things forward")
+    st.caption("Only things someone can do today. People whose answers unblock the most come first; "
+               "slow responders come before quick ones so their clock starts now.")
     for who, items in sorted(P["batches"].items(), key=lambda kv: -sum(a.unblocks for a in kv[1])):
         total = sum(a.unblocks for a in items)
-        with st.expander(f"**{who}** · {len(items)} item(s) · unblocks {total} · "
-                         f"replies in ~{items[0].reply_days} days"):
+        with st.expander(f"**{who}**: {plural(len(items), 'item')}, unblocks {total}, "
+                         f"usually replies in {items[0].reply_days:g} business days"):
             for a in items:
-                st.markdown(f"- {a.title} · {', '.join(DN[d] for d in a.deals)} · unblocks {a.unblocks}")
+                st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}")
             msg = batch_message(who, items, S)
-            st.text_area("Consolidated message (edit before sending)", msg, height=200,
-                         key=f"msg-{who}")
-            if st.button(f"Mark as sent to {who}", key=f"ask-{who}"):
+            st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
+            if st.button(f"I sent this to {who}", key=f"ask-{who}",
+                         help="Records the ask so the briefing tracks the wait and flags it when overdue."):
                 ledger.append({"type": "asked", "who": who, "date": str(S.as_of),
                                "facts": [k for a in items for k in a.facts], "note": msg[:200]})
                 rebuild(f"Asked {who}")
                 st.rerun()
 
-    if S.draft_flags:
-        st.subheader("Draft answers in the questionnaires that look wrong")
-        for f in S.draft_flags:
-            st.markdown(f"- {f['text']}")
+    left, right = st.columns(2, gap="large")
+    with left:
+        st.subheader("What's delaying")
+        rest = [d for d in P["delays"] if d["kind"] not in ("deadline_passed", "deadline_close")]
+        if not rest:
+            st.caption("Nothing beyond the deadlines above.")
+        for d in rest:
+            c, t = DELAY.get(d["kind"], ("orange", d["kind"]))
+            deals = " and ".join(DN.get(x.strip(), x) for x in d["deal"].split(",")) if d["deal"] else ""
+            st.markdown(f":{c}-badge[{t}] {tidy(d['text'])}" + (f"  \n:gray[Affects {deals}]" if deals else ""))
+    with right:
+        st.subheader("Waiting on")
+        if not P["waits"]:
+            st.caption("Nobody yet. Once you mark a message as sent, the person shows up here, flagged "
+                       "if they take longer than they usually do.")
+        for w in P["waits"]:
+            st.markdown((badge("expired").replace("expired", "overdue") + " " if w["overdue"] else "")
+                        + f"**{w['who']}**, asked {w['since']} about {plural(len(w['facts']), 'item')}. "
+                        f"Usually replies in {w['expected_days']:g} business days.")
 
 
 # ---------------- Deal page ----------------
 
 def deal_page():
     deal = st.selectbox("Deal", list(DN), format_func=DN.get)
-    st.header(DN[deal])
+    st.title(DN[deal])
     for t in S.timeline[deal]:
-        st.caption(f"Timeline: {t.text}")
+        st.markdown(f"**Timeline:** {t.text}")
     for i in S.instructions[deal]:
-        st.caption(f"Customer instruction: {i.text}")
-    tabs = st.tabs(["1 · Required", "2 · Known", "3 · Unresolved", "4 · Blocking", "5 · Next"])
+        st.markdown(f"**{DN[deal]} asked us to:** {i.text}")
+    tabs = st.tabs(["What's required", "What we know", "What's unresolved", "What's blocking", "What to do next"])
     rs = S.reqs[deal]
     keys = sorted({fact_key(deal, n, S.catalog) for r in rs for n in r.facts})
     with tabs[0]:
-        st.caption("Every ask from every round and channel, merged into requirements.")
+        st.caption("Every ask from every round and channel, merged into one list of requirements.")
         for track in sorted({r.track for r in rs}):
-            st.markdown(f"#### {track}")
+            st.subheader(track)
             for r in [r for r in rs if r.track == track]:
-                with st.expander(f"{r.id.split(':')[1]} · {r.title}  —  {NICE.get(r.status, r.status)}"):
-                    st.markdown(f"{badge(r.status)} {r.ask}")
+                with st.expander(f"{badge(r.status)} {r.id.split(':')[1]} {r.title}"):
+                    st.markdown(r.ask)
                     if r.reading:
                         st.info(f"How {DN[deal]} reads it: {r.reading}")
                     for i in r.ask_ids[:40]:
                         a = S.asks.get(i)
                         if a:
                             where = f"Round {a.round} {a.qid}" if a.qid else S.sources[a.source_id].title
-                            st.caption(f"• {where}: \"{a.quote}\"" + (f" ({a.who})" if a.who else ""))
+                            st.caption(f"{where}: \"{a.quote}\"" + (f" ({a.who})" if a.who else ""))
                     for h in r.history:
                         if h.get("round", 0) > 1:
-                            st.caption(f"Round {h['round']} {h['qid']}: {h['relation']}"
-                                       + (f" · added: {h['added_part']}" if h["added_part"] else "")
-                                       + (f" · ⚠ {h['reused_number']}" if h.get("reused_number") else ""))
+                            st.caption(f"Round {h['round']} {h['qid']} is a {h['relation'].replace('_', ' ')}"
+                                       + (f", and adds: {h['added_part']}" if h["added_part"] else "")
+                                       + (f". Warning: {h['reused_number']}" if h.get("reused_number") else ""))
                     if r.facts:
                         st.markdown("Needs: " + ", ".join(
                             f"{label(fact_key(deal, n, S.catalog), S.catalog)} "
                             f"{badge(S.facts[fact_key(deal, n, S.catalog)].status)}" for n in r.facts))
     with tabs[1]:
         st.caption("Verified facts, each with the source that settles it.")
+        shown = 0
         for k in keys:
             f = S.facts[k]
             if f.status == "verified":
+                shown += 1
                 src = S.sources[f.winner.source_id]
-                st.markdown(f"- **{label(k, S.catalog)}**: {f.value}  \n  :gray[{f.winner.tier_reason} · "
-                            f"{src.title} · \"{f.winner.quote}\"]" +
-                            "".join(f"  \n  :orange[⚠ {w}]" for w in f.warnings[:2]))
+                st.markdown(f"{badge('verified')} **{label(k, S.catalog)}**: {f.value}  \n"
+                            f":gray[{trust(f.winner, src)} in {src.title}: \"{f.winner.quote}\"]"
+                            + "".join(f"  \n:orange[Caveat: {w}]" for w in f.warnings[:2]))
+        if not shown:
+            st.caption("Nothing is verified for this deal yet.")
     with tabs[2]:
-        st.caption("Not settled yet, with why and who can settle it. Values here are internal best guesses, never sent.")
+        st.caption("Not settled yet, worst first, with why and who can settle it. "
+                   "Best guesses here are internal and never sent.")
         order = ["conflicting", "expired", "stale", "undecided", "needs_proof", "needs_confirmation", "unknown"]
         for status in order:
             for k in keys:
                 f = S.facts[k]
                 if f.status == status:
                     owner = S.policy["team_owner"].get(f.spec["owner"], f.spec["owner"])
-                    st.markdown(f"- {badge(f.status)} **{label(k, S.catalog)}** · owner {owner}"
-                                + (f" · best guess \"{f.value}\"" if f.value else "")
-                                + f"  \n  :gray[{f.reason}]"
-                                + (f"  \n  :red[blocked by {', '.join(label(b, S.catalog) for b in f.blocked_by)}]" if f.blocked_by else ""))
+                    st.markdown(f"{badge(f.status)} **{label(k, S.catalog)}**, owner {owner}"
+                                + (f". Best guess \"{f.value}\"" if f.value else "")
+                                + f"  \n:gray[{f.reason}]"
+                                + (f"  \n:red[Blocked by {', '.join(label(b, S.catalog) for b in f.blocked_by)}]"
+                                   if f.blocked_by else ""))
     with tabs[3]:
         st.caption("Root causes for this deal, and the chain from each requirement down to it.")
         for b in P["blockers"]:
@@ -275,159 +433,201 @@ def deal_page():
             if not mine:
                 continue
             f = S.facts[b["fact"]]
-            with st.container(border=True):
-                st.markdown(f"**{label(b['fact'], S.catalog)}** {badge(f.status)} · holds up {len(mine)}: "
-                            + ", ".join(req_by_id(x).title for x in mine))
-                st.caption(f.reason)
-                for c in b["chains"]:
-                    if c.lower().startswith(deal):
-                        st.caption(f"↳ {c}")
+            st.markdown(f"{badge(f.status)} **{label(b['fact'], S.catalog)}** holds up "
+                        f"{plural(len(mine), 'requirement')}: " + ", ".join(req_by_id(x).title for x in mine)
+                        + f"  \n:gray[{f.reason}]")
+            for c in b["chains"]:
+                if c.lower().startswith(deal):
+                    st.caption(f"↳ {c}")
     with tabs[4]:
+        st.caption("Ranked by how many requirements each step unblocks.")
         for a in P["actions"]:
             if deal in a.deals:
-                st.markdown(f"- **{a.who}** · {a.title} · unblocks {a.unblocks}"
-                            + (f" · waiting since {a.waiting_since}" if a.waiting_since else "")
-                            + f"  \n  :gray[{a.detail}]")
+                st.markdown(f"**{a.who}**: {a.title}, unblocks {a.unblocks}"
+                            + (f". Waiting since {a.waiting_since}" if a.waiting_since else "")
+                            + (" :red-badge[overdue]" if a.overdue else "")
+                            + f"  \n:gray[{a.detail}]")
 
 
 # ---------------- Facts ----------------
 
 def facts_page():
-    st.header("Facts")
-    st.caption("Each fact's value is chosen by fixed rules: trust tier first, then the most recent. "
-               "Another customer's answer is shown as a hint and never wins.")
-    c1, c2 = st.columns([1, 2])
-    scope = c1.selectbox("Scope", ["company"] + list(DN), format_func=lambda x: "Whole company" if x == "company" else DN[x])
-    keys = [k for k in S.facts if k.startswith(scope + ".")]
-    k = c2.selectbox("Fact", keys, format_func=lambda x: f"{label(x, S.catalog)} · {NICE.get(S.facts[x].status, S.facts[x].status)}")
-    f = S.facts[k]
-    st.markdown(f"### {label(k, S.catalog)} {badge(f.status)}")
-    st.markdown(f"*{f.spec['question']}* · owner **{f.spec['owner']}** · proof needed: **{f.spec['proof'].replace('_', ' ')}**"
-                + (f" · max age {f.spec['max_age_days']} days" if f.spec.get("max_age_days") else ""))
-    st.markdown(f"**Value:** {f.value or '—'}  \n**Why:** {f.reason}")
-    for w in f.warnings:
-        st.warning(w)
-    if f.blocked_by:
-        st.error("Blocked by " + ", ".join(label(b, S.catalog) for b in f.blocked_by))
-    rows = []
-    for c in f.claims + f.hints:
-        rows.append({"winner": "★" if f.winner and c.id == f.winner.id else "", "tier": c.tier,
-                     "trust": c.tier_reason, "value": c.value, "kind": c.assertion, "quote": c.quote,
-                     "speaker": c.speaker or "", "date": str(getattr(c, 'eff_date', None) or ""),
-                     "source": S.sources[c.source_id].title})
-    st.dataframe(rows, use_container_width=True, hide_index=True)
-    for fl in S.draft_flags:
-        if fl["fact"] == k:
-            st.error(fl["text"])
+    st.title("Facts")
+    main, key = st.columns([2.2, 1], gap="large")
+    with key:
+        status_key()
+    with main:
+        c1, c2 = st.columns([1, 2])
+        scope = c1.selectbox("Scope", ["company"] + list(DN),
+                             format_func=lambda x: "Whole company" if x == "company" else DN[x])
+        keys = [k for k in S.facts if k.startswith(scope + ".")]
+        k = c2.selectbox("Fact", keys, format_func=lambda x: f"{label(x, S.catalog)} ({nice(S.facts[x].status)})")
+        f = S.facts[k]
+        st.header(label(k, S.catalog))
+        st.markdown(f"{badge(f.status)} **{f.value or 'No value yet'}**  \n{f.reason}")
+        st.markdown(f"*{f.spec['question']}*  \nOwner **{f.spec['owner']}**, needs "
+                    f"**{f.spec['proof'].replace('_', ' ')}** as proof"
+                    + (f", and the proof must be under {f.spec['max_age_days']} days old" if f.spec.get("max_age_days") else "")
+                    + ".")
+        for w in f.warnings:
+            st.warning(w)
+        if f.blocked_by:
+            st.error("Blocked by " + ", ".join(label(b, S.catalog) for b in f.blocked_by))
+        for fl in S.draft_flags:
+            if fl["fact"] == k:
+                st.error(fl["text"])
+        rows = []
+        for c in f.claims + f.hints:
+            src = S.sources[c.source_id]
+            rows.append({"Wins": "yes" if f.winner and c.id == f.winner.id else "", "Tier": c.tier,
+                         "Trust": trust(c, src), "Value": c.value, "Quote": c.quote, "Kind": c.assertion,
+                         "Said by": c.speaker or "", "Date": str(getattr(c, 'eff_date', None) or ""),
+                         "Source": src.title})
+        st.subheader("Every source that says something about it")
+        if rows:
+            st.dataframe(rows, width="stretch", hide_index=True)
+        else:
+            st.caption(f"No source mentions this yet. Ask {f.spec['owner']}.")
 
 
 # ---------------- Approvals ----------------
 
 def approvals_page():
-    st.header("Approvals")
-    st.caption("The model drafts from facts only. Customer-facing sentences can only state verified facts; "
-               "everything else becomes a Pending line naming the owner. Code checks every citation.")
-    deal = st.selectbox("Deal", list(DN), format_func=DN.get, key="ap-deal")
+    st.title("Approvals")
+    st.caption("The model drafts from facts only. A sentence sent to the customer may state only verified "
+               "facts; anything else becomes a pending line naming the owner. Code checks every citation.")
+    c1, c2 = st.columns([1, 2])
+    deal = c1.selectbox("Deal", list(DN), format_func=DN.get, key="ap-deal")
     rs = [r for r in S.reqs[deal] if r.status not in ("missing_text", "umbrella") and r.facts]
     rs.sort(key=lambda r: (r.status != "ready", r.id))
-    r = st.selectbox("Requirement", rs, format_func=lambda r: f"{r.id.split(':')[1]} · {r.title} · {NICE.get(r.status, r.status)}")
+    by_id = {r.id: r for r in rs}
+    if st.session_state.get("ap-req") not in by_id:
+        st.session_state.pop("ap-req", None)
+    rid = c2.selectbox("Requirement", list(by_id), key="ap-req",
+                       format_func=lambda i: f"{i.split(':')[1]} {by_id[i].title} ({nice(by_id[i].status)})")
+    r = by_id[rid]
     drafts = st.session_state.setdefault("drafts", {})
     st.markdown(f"{badge(r.status)} {r.ask}")
     if r.reading:
         st.info(f"How {DN[deal]} reads it: {r.reading}")
-    if st.button("Draft answer", type="primary"):
-        with st.spinner("Drafting and checking..."):
+    if st.button("Draft and check an answer", type="primary"):
+        with st.spinner("Drafting from facts, then checking every sentence against its citations."):
             drafts[r.id] = drafting.draft(r, S)
     d = drafts.get(r.id)
     if not d:
         return
+    approval_card(d, deal, r)
+
+
+def approval_card(d, deal, r):
     claims = {c.id: c for c in S.claims}
+    per = d["checks"]["per_sentence"]
+    bad = sum(1 for fl in per if any(not f.startswith("evidence partly") for f in fl))
+    soft = sum(1 for fl in per if fl) - bad
+    pend = sum(1 for s in d["sentences"] if s["kind"] == "pending")
     with st.container(border=True):
-        st.markdown(f"**Draft v{d['version']}** · for {DN[deal]}")
+        st.subheader(f"Answer for {DN[deal]}")
+        verdict = ("Ready to approve." if d["checks"]["can_approve"] and not soft else
+                   "Ready to approve, but read the amber notes." if d["checks"]["can_approve"] else
+                   "Cannot be approved until the red problems are fixed.")
+        st.markdown(f"{plural(len(d['sentences']), 'sentence')}: {pend} pending, {soft} with a soft warning, "
+                    f"{bad} with a problem. **{verdict}**  \n:gray[Version {d['version']}]")
+        out = []
         for i, s in enumerate(d["sentences"]):
-            flags = d["checks"]["per_sentence"][i]
-            mark = "🟥" if any(not f.startswith("evidence partly") for f in flags) else ("🟧" if flags else "🟩")
-            if s["kind"] == "pending":
-                st.markdown(f"{mark} :orange[{s['text']}]")
-            else:
-                st.markdown(f"{mark} {s['text']}")
-            chips = []
+            flags = per[i]
+            hard = any(not f.startswith("evidence partly") for f in flags)
+            c = HEX["red"] if hard else HEX["orange"] if (flags or s["kind"] == "pending") else HEX["green"]
+            text = esc(s["text"])
+            body = f'<p class="pn-pending">{text}</p>' if s["kind"] == "pending" else f"<p>{text}</p>"
             for cid in s["claim_ids"]:
-                c = claims.get(cid)
-                if c:
-                    src = S.sources[c.source_id]
-                    tier = "Vanta ✓" if src.system == "vanta" else c.tier_reason
-                    chips.append(f":blue-background[{src.title.split('/')[-1]} · {tier}]  \"{c.quote}\"")
-            for ch in chips:
-                st.caption(ch)
+                cl = claims.get(cid)
+                if cl:
+                    src = S.sources[cl.source_id]
+                    body += (f'<div class="pn-cite"><b>{esc(trust(cl, src))}</b> in '
+                             f'{esc(src.title.split("/")[-1])}: <q>{esc(cl.quote)}</q></div>')
+                else:
+                    body += f'<div class="pn-flag">Cites {esc(cid)}, which does not exist</div>'
+            if s["kind"] == "pending":
+                body += '<div class="pn-cite">Pending line: names the owner, states no value.</div>'
             for fl in flags:
-                st.caption(f":red[⚠ {fl}]")
-    with st.expander("Internal notes (Jai only, never sent)", expanded=True):
-        for n in d["internal_notes"]:
-            st.markdown(f"- {n}")
-    for w in d["checks"]["warnings"]:
-        st.warning(w)
-    for e in d["checks"]["errors"]:
-        st.error(e)
-    sent = [e for e in S.ledger if e["type"] == "sent" and e["req"] == r.id]
-    c1, c2 = st.columns(2)
-    if c1.button("Approve and mark as sent", disabled=not d["checks"]["can_approve"], type="primary"):
-        ledger.append({"type": "approved", "deal": deal, "req": r.id, "version": d["version"],
-                       "date": str(S.as_of)})
-        ledger.append({"type": "sent", "deal": deal, "req": r.id, "version": d["version"],
-                       "text": d["text"], "facts": d["facts_used"], "date": str(S.as_of)})
-        rebuild(f"Sent {r.title} to {DN[deal]}")
-        st.rerun()
-    if not d["checks"]["can_approve"]:
-        c2.caption("Approval is disabled until the checker's errors are fixed.")
-    for e in sent:
-        st.caption(f"Sent {e['date']} (v{e['version']}): {e['text']}")
+                body += f'<div class="pn-flag">Checker: {esc(fl)}</div>'
+            out.append(f'<div class="pn-sent" style="--c:{c}">{body}</div>')
+        st.html("".join(out))
+        for e in d["checks"]["errors"]:
+            st.error(e)
+        for w in d["checks"]["warnings"]:
+            st.warning(w)
+        sent = [e for e in S.ledger if e["type"] == "sent" and e["req"] == r.id]
+        c1, c2 = st.columns([1, 2], vertical_alignment="center")
+        if c1.button(f"Approve and mark as sent to {DN[deal]}", disabled=not d["checks"]["can_approve"],
+                     type="primary"):
+            ledger.append({"type": "approved", "deal": deal, "req": r.id, "version": d["version"],
+                           "date": str(S.as_of)})
+            ledger.append({"type": "sent", "deal": deal, "req": r.id, "version": d["version"],
+                           "text": d["text"], "facts": d["facts_used"], "date": str(S.as_of)})
+            rebuild(f"Sent {r.title} to {DN[deal]}")
+            st.rerun()
+        if not d["checks"]["can_approve"]:
+            c2.caption("Approval stays off until the checker's red problems are fixed.")
+        for e in sent:
+            st.caption(f"Already sent on {e['date']} (version {e['version']}): {e['text']}")
+    if d["internal_notes"]:
+        with st.expander("Internal notes, for you only and never sent", expanded=True):
+            for n in d["internal_notes"]:
+                st.markdown(f"- {n}")
 
 
 # ---------------- Rounds ----------------
 
 def rounds_page():
-    st.header("Questionnaire rounds")
+    st.title("Questionnaire rounds")
     st.caption("Each question in a later round is matched to existing requirements by meaning, not by number.")
     for deal, recs in S.rounds.items():
-        st.subheader(DN[deal])
+        st.header(DN[deal])
         if not recs:
-            st.caption("Only round 1 so far. Add a round on the Add input screen.")
+            st.caption("Only round 1 so far. Add a new round on the Add input screen.")
             continue
         counts = {}
         for x in recs:
             counts[x["relation"]] = counts.get(x["relation"], 0) + 1
-        st.markdown(" · ".join(f"**{v}** {k.replace('_', ' ')}" for k, v in counts.items()))
+        st.markdown(", ".join(f"**{v}** {k.replace('_', ' ')}" for k, v in counts.items()))
         for x in recs:
             r = req_by_id(x["requirement_id"])
-            st.markdown(f"- **{x['qid']}** {badge('ready' if x['relation'] == 'repeat' else 'open' if x['relation'] != 'new' else 'predicted')} "
-                        f"{x['relation'].replace('_', ' ')} → {r.title if r else x['requirement_id']}  \n"
-                        f"  :gray[\"{x['question']}\"]"
-                        + (f"  \n  added: {x['added_part']}" if x["added_part"] else "")
-                        + (f"  \n  :red[⚠ {x['reused_number']}]" if x.get("reused_number") else ""))
+            rel = x["relation"]
+            color = "green" if rel == "repeat" else "blue" if rel == "new" else "orange"
+            st.markdown(f"**{x['qid']}** :{color}-badge[{rel.replace('_', ' ')}] "
+                        f"matches **{r.title if r else x['requirement_id']}**  \n"
+                        f":gray[\"{x['question']}\"]"
+                        + (f"  \nAdds: {x['added_part']}" if x["added_part"] else "")
+                        + (f"  \n:red[Warning: {x['reused_number']}]" if x.get("reused_number") else ""))
 
 
 # ---------------- Add input ----------------
 
 def add_page():
-    st.header("Add input")
-    st.caption("Connectors are mocked: paste anything (email, Slack, a document, evidence, a new questionnaire round). "
-               "It is stored as a new source; the engine rebuilds and shows what changed.")
-    st.subheader("Demo inputs")
+    st.title("Add input")
+    st.caption("Connectors are mocked. Paste anything: an email, a Slack thread, a document, evidence, or a new "
+               "questionnaire round. It is stored as a new source, the engine rebuilds, and the top of the "
+               "screen shows what changed.")
+    st.header("Demo inputs")
     for p in sorted(SAMPLES.glob("*.json")):
         d = json.loads(p.read_text())
         added = (INBOX / p.name).exists()
-        c1, c2 = st.columns([5, 1])
-        c1.markdown(f"**{d['title']}** · {d['system']} · {d.get('author', '')} · {d.get('date', '')}  \n"
+        c1, c2 = st.columns([5, 1], vertical_alignment="center")
+        meta = d["system"].capitalize() + (f" from {d['author']}" if d.get("author") else "") \
+            + (f", {d['date']}" if d.get("date") else "")
+        c1.markdown(f"**{d['title']}**  \n{meta}  \n"
                     f":gray[{d['text'][:160]}{'...' if len(d['text']) > 160 else ''}]")
-        if c2.button("Added" if added else "Add", key=p.name, disabled=added):
+        if c2.button("Added" if added else "Add and rebuild", key=p.name, disabled=added,
+                     width="stretch"):
             shutil.copy(p, INBOX / p.name)
             rebuild(f"Added: {d['title']}")
             st.rerun()
-    st.subheader("Your own input")
+    st.header("Your own input")
     with st.form("add"):
         c1, c2, c3 = st.columns(3)
-        deal = c1.selectbox("About", ["company"] + list(DN), format_func=lambda x: "Whole company" if x == "company" else DN[x])
+        deal = c1.selectbox("About", ["company"] + list(DN),
+                            format_func=lambda x: "Whole company" if x == "company" else DN[x])
         system = c2.selectbox("Arrived as", ["email", "slack", "vanta", "drive", "notes", "questionnaire"])
         author = c3.text_input("From")
         c4, c5 = st.columns(2)

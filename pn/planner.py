@@ -14,7 +14,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from .models import Action, Fact, Requirement
-from .resolve import chain, root_causes, _tokens
+from .resolve import chain, dep_keys, root_causes, _tokens
 
 KIND_BY_STATUS = {
     "unknown": "confirm", "needs_confirmation": "confirm", "needs_proof": "get_evidence",
@@ -37,8 +37,7 @@ def closure(keys: list[str], facts: dict[str, Fact]) -> set[str]:
         if k in out or k not in facts:
             continue
         out.add(k)
-        prefix = k.rsplit(".", 1)[0]
-        todo += [f"{prefix}.{d}" for d in facts[k].spec.get("depends_on", []) or []]
+        todo += dep_keys(k, facts)
     return out
 
 
@@ -92,10 +91,12 @@ def plan(state) -> dict:
                 return a.who
         return "Customer Procurement"
 
-    # actions on the frontier
+    # actions on the frontier: the root causes of everything held up. For an acyclic catalog this
+    # is "held facts that are not blocked"; it also keeps facts in a depends_on cycle actionable.
+    frontier = {r for k in holds for r in root_causes(k, facts)}
     actions: dict[tuple, Action] = {}
     for k, f in facts.items():
-        if f.status == "verified" or not holds.get(k) or f.blocked_by:
+        if f.status == "verified" or not holds.get(k) or k not in frontier:
             continue
         deal = None if k.startswith("company.") else k.split(".")[0]
         deals = sorted({rid.split(":")[0] for rid in holds[k]})

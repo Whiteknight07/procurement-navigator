@@ -47,8 +47,19 @@ def build(as_of: date | None = None, offline: bool = False, ledger_path: Path | 
     st = State(as_of=as_of, catalog=catalog, policy=policy, deals_cfg=deals_cfg, deal_names=names)
     st.ledger = ledger.read(ledger_path) if ledger_path else ledger.read()
 
+    for name, spec in catalog["facts"].items():   # a typo here would silently drop a blocker
+        for dep in spec.get("depends_on", []) or []:
+            if dep not in catalog["facts"]:
+                st.errors.append(f"catalog: {name} depends on unknown fact {dep}")
+
     # 1. load
     docs, questionnaires = load_sources(deals_cfg)
+    known = [s for s in docs + questionnaires if s.deal is None or s.deal in names]
+    for s in docs + questionnaires:
+        if s not in known:   # e.g. an added input with a misspelt deal: skip it, keep building
+            st.errors.append(f"{s.title}: unknown deal {s.deal!r}; input ignored")
+    docs = [s for s in docs if s in known]
+    questionnaires = [s for s in questionnaires if s in known]
     for s in docs + questionnaires:
         st.sources[s.id] = s
 
@@ -66,6 +77,9 @@ def build(as_of: date | None = None, offline: bool = False, ledger_path: Path | 
             continue
         st.summaries[s.id] = out.get("summary", "")
         claims, g, asks, dropped = extract.to_objects(s, out)
+        # a cached answer can name a fact that has since left the catalog
+        dropped += [f"claim for unknown fact {c.fact}" for c in claims if c.fact not in catalog["facts"]]
+        claims = [c for c in claims if c.fact in catalog["facts"]]
         st.claims += claims
         gaps += g
         st.dropped += [f"{s.title}: {d}" for d in dropped]
@@ -77,11 +91,26 @@ def build(as_of: date | None = None, offline: bool = False, ledger_path: Path | 
 
     # questionnaires: rows by code, typed-in draft answers mapped by the model
     q_asks: dict[str, dict[int, list[Ask]]] = {}
+    # Configured rounds first, then added ones in arrival order. An added questionnaire with no
+    # round, or a round number already used for that deal, becomes the next round: otherwise its
+    # row ids (deal:R1:Q-004) would overwrite the earlier round's rows.
+    taken: dict[str, set[int]] = {}
+    for q in [x for x in questionnaires if not x.added] + [x for x in questionnaires if x.added]:
+        if not q.deal:
+            continue
+        try:
+            rn = int(q.round) if q.round else None
+        except (TypeError, ValueError):
+            rn = None
+        used = taken.setdefault(q.deal, set())
+        if rn is None or rn in used:
+            rn = max(used, default=0) + 1
+        q.round = rn
+        used.add(rn)
     for q in sorted(questionnaires, key=lambda x: (x.deal or "", x.round or 1)):
         if not q.deal:
             st.errors.append(f"{q.title}: a questionnaire needs a deal")
             continue
-        q.round = q.round or 1
         rows, drafts = parse_questionnaire(q)
         q_asks.setdefault(q.deal, {}).setdefault(q.round, []).extend(rows)
         for a in rows:
@@ -97,8 +126,9 @@ def build(as_of: date | None = None, offline: bool = False, ledger_path: Path | 
             if not d:
                 continue
             for fname in m["facts"]:
+                # full source id: added questionnaires share long prefixes
                 st.claims.append(Claim(
-                    id=f"D-{q.id[:10]}-{i}-{fname}", source_id=q.id, deal=q.deal, fact=fname,
+                    id=f"D-{q.id}-{i}-{fname}", source_id=q.id, deal=q.deal, fact=fname,
                     value=m["value"], quote=d["draft_answer"], speaker=None, applies_to="this_deal",
                     assertion="questionnaire_draft", as_of_date=None, valid_until=None,
                     note=f"typed into {d['qid']}" + (f"; sheet note: {d['note']}" if d["note"] else "")))

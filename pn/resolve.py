@@ -124,8 +124,9 @@ def _order(c: Claim):
 
 
 def superseded(c: Claim, w: Claim, as_of: date) -> bool:
-    """An older or expired claim that the winner replaces is not a conflict."""
-    if c.valid_until and c.valid_until <= as_of and not (w.valid_until and w.valid_until <= as_of):
+    """An older or expired claim that the winner replaces is not a conflict.
+    Expired means valid_until is before as_of, the same rule resolve_fact uses."""
+    if c.valid_until and c.valid_until < as_of and not (w.valid_until and w.valid_until < as_of):
         return True
     cd, wd = _eff(c), _eff(w)
     return cd is not None and wd is not None and cd < wd
@@ -199,6 +200,9 @@ def resolve_fact(f: Fact, claims: list[Claim], as_of: date, policy: dict,
         f.reason = (f"Dated {w.as_of_date:%b %Y}, {(as_of - w.as_of_date).days} days old; "
                     f"policy allows {max_age}.")
     else:
+        if max_age and not w.as_of_date and not w.valid_until:
+            # no date at all: we cannot tell whether it is fresh, so say so instead of passing silently
+            f.warnings.append(f"No date on the proof; cannot check it is within {max_age} days.")
         end = w.valid_until or (w.as_of_date + timedelta(days=max_age) if max_age and w.as_of_date else None)
         if end and (end - as_of).days <= policy.get("expiry_warning_days", 45):
             f.warnings.append(f"Expires {end:%b %d, %Y}; start renewal now.")
@@ -241,30 +245,42 @@ def pairs_needed(claims: list[Claim]) -> list[tuple[Claim, Claim]]:
     return out
 
 
+def dep_keys(key: str, facts: dict[str, Fact]) -> list[str]:
+    """Fact keys that `key` depends on. A dependency on a company-level fact points at the one
+    shared company fact, not at a per-deal key that does not exist."""
+    prefix = key.rsplit(".", 1)[0]
+    out = []
+    for dep in facts[key].spec.get("depends_on", []) or []:
+        dk = f"company.{dep}" if f"company.{dep}" in facts else f"{prefix}.{dep}"
+        if dk in facts and dk != key:
+            out.append(dk)
+    return out
+
+
 def set_blockers(facts: dict[str, Fact]) -> None:
     for f in facts.values():
-        prefix = f.key.rsplit(".", 1)[0]
-        for dep in f.spec.get("depends_on", []) or []:
-            dk = f"{prefix}.{dep}"
-            if dk in facts and facts[dk].status != "verified":
-                f.blocked_by.append(dk)
+        # recomputed from scratch so calling it twice cannot duplicate entries
+        f.blocked_by = [dk for dk in dep_keys(f.key, facts) if facts[dk].status != "verified"]
 
 
 def root_causes(key: str, facts: dict[str, Fact], seen=None) -> list[str]:
     """Follow blocked_by down to facts that are not blocked themselves: the real things to fix."""
+    # `seen` is the path from the starting fact, not every fact visited: two facts sharing a
+    # dependency (a diamond) is normal; only a path that loops back to itself is cut off.
     seen = seen or set()
     if key in seen:
         return []
-    seen.add(key)
     f = facts[key]
     if not f.blocked_by:
         return [key]
     out = []
     for b in f.blocked_by:
-        for r in root_causes(b, facts, seen):
+        for r in root_causes(b, facts, seen | {key}):
             if r not in out:
                 out.append(r)
-    return out
+    # Empty only when every path loops back (a depends_on cycle in the catalog). Treat this fact
+    # as a root then, otherwise the gap would vanish from blockers and actions.
+    return out or [key]
 
 
 def chain(key: str, facts: dict[str, Fact]) -> list[str]:
