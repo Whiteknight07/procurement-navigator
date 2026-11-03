@@ -323,7 +323,8 @@ main{min-width:0}
 
     <div class="panel" role="tabpanel">
       <h3>What we have on file about app-log retention</h3>
-      <p>Extraction found four claims. Each has an exact quote, and the rules give each a trust tier (chapter 6).</p>
+      <p>A <b>claim</b> is what one source says: one quote, from one place. The <b>fact</b> is the thing we want to know, Acme's app-log retention. Here, four claims about one fact, with two different values. Keeping them apart is what lets the system show disagreement instead of picking one.</p>
+      <p>Each claim gets a <b>trust tier</b> from where it came from and how it was said: <b>Evidence</b> (Vanta, or the customer's own words), <b>Owner</b> (the owning person saying it as settled), <b>Plan</b> (a draft or non-owner chat: what was intended, not proof it is live), and <b>Hint</b> (a generic doc, another customer, a typed-in draft: shown, never the answer). More in chapter 6.</p>
       <table class="claims">
         <tr><th>Tier</th><th>Says</th><th>Quote</th><th>Where it came from</th></tr>
         <tr><td><span class="tier">Plan</span></td><td>14 days</td><td class="quote">App logs intended 14 days.</td><td class="src">Acme draft configuration (a plan, not proof it is live)</td></tr>
