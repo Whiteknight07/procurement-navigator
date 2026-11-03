@@ -143,6 +143,6 @@ cache/llm/                 committed model cache (base case runs offline)
 state/                     inbox/ (added inputs) and ledger.jsonl (both gitignored)
 evals/                     run.py, expectations.py (answer key), results.md
 tests/                     rule tests
-docs/                      brief.pdf, ARCHITECTURE.md, DEMO.md, ADAPTABILITY.md (third customer test), INTERVIEW_PREP.md, explainer.html (start here), architecture.html (one diagram), why.html (decisions), diagrams/
+docs/                      brief.pdf, ARCHITECTURE.md, DEMO.md, ADAPTABILITY.md (third customer test), INTERVIEW_PREP.md, explainer.html (start here), architecture.html (one diagram), diagrams.html (architecture + DFD), why.html (decisions), diagrams/
 scripts/                   demo_story.py, print_state.py
 ```

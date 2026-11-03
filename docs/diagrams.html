@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture and data flow: Procurement Navigator</title>
+<style>
+:root{
+  --bg:var(--background,#F6F8F4); --fg:var(--foreground,#26302E); --mut:var(--muted-foreground,#5E6B66);
+  --line:var(--border,#CBD5CA); --box:var(--card,#FFFFFF); --soft:var(--secondary,#E9EEE7);
+  --model:#8A63D2; --code:#3B6FC4; --jai:#2E9A5C; --src:#8A948F; --store:#B8770B;
+  --font:var(--font-sans,system-ui,-apple-system,"Segoe UI",sans-serif);
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.55 var(--font);color:var(--fg)}
+.page{max-width:760px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:30px;line-height:1.1;margin:0 0 6px}
+h2{font-size:22px;margin:40px 0 4px}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 10px;max-width:70ch}
+.mut{color:var(--mut)} .small{font-size:13px}
+code{font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;background:var(--soft);padding:0 4px;border-radius:3px}
+svg{display:block;width:100%;height:auto;margin:10px 0 6px}
+svg text{font-family:var(--font);fill:var(--fg)}
+svg .t{font-size:14px;font-weight:700}
+svg .s{font-size:11.5px;fill:var(--mut)}
+svg .lab{font-size:11.5px;font-weight:600;fill:var(--mut)}
+svg .fl{font-size:11px;fill:var(--mut)}
+svg .w{font-size:10.5px;font-weight:700;fill:#fff}
+svg .box{fill:var(--box);stroke-width:1.8}
+svg .hold{fill:var(--soft);stroke:var(--fg);stroke-width:1.2}
+svg .ln{fill:none;stroke:var(--mut);stroke-width:1.4;marker-end:url(#a)}
+svg .dl{fill:none;stroke:var(--mut);stroke-width:1.2;stroke-dasharray:4 3;marker-end:url(#a)}
+svg .both{marker-start:url(#a)}
+.key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--mut);margin:8px 0}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:12px;height:12px;border-radius:2px;background:var(--c)}
+.key i.h{background:var(--soft);border:1.2px solid var(--fg)}
+.key i.o{background:none;border:2px solid var(--store);border-left:0;border-right:0;border-radius:0}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 4px}
+th,td{text-align:left;vertical-align:top;padding:7px 8px 7px 0;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--mut)}
+td b{white-space:nowrap}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;color:#fff;background:var(--c);padding:0 6px;border-radius:3px;white-space:nowrap}
+.cat{background:var(--soft);border-radius:var(--radius,6px);padding:12px 14px;font-size:13.5px}
+.cat pre{margin:6px 0 0;font:12.5px/1.5 var(--font-mono,ui-monospace,monospace);white-space:pre-wrap}
+</style></head><body><div class="page">
+
+<h1>Architecture and data flow</h1>
+<p class="mut">Two views of the same system. The architecture shows the parts and who decides at each one. The data flow diagram (DFD) shows what data moves between them and where it is kept.</p>
+
+<h2>What "Jai's list" is</h2>
+<div class="cat">
+<p style="margin:0"><b>The catalog</b>, <code>config/catalog.yaml</code>. It lists the things procurement questions boil down to, with Jai's rules for each. It has 33 entries: 14 are about the company (SOC 2, insurance), so there is one answer for everyone; 19 are per deal (storage region, log retention), so there is one answer per customer. 14 + 19 × 2 deals = <b>52 questions</b>. We wrote it from the case material (Jai's notes, the questionnaires, the ownership sheet). In real use, Jai owns it and edits it.</p>
+<pre>pen_test:
+  level: company          one answer for every deal
+  owner: Engineering      who to ask
+  proof: document         what settles it: a document, the owner, or the customer
+  max_age_days: 183       Jai: "a 6-month-old report won't work"
+  question: Date and findings of the latest external penetration test.</pre>
+</div>
+
+<!-- ============ ARCHITECTURE ============ -->
+<h2>1. Architecture</h2>
+<p>Top to bottom is the order of a rebuild. The left column is the <b>ask side</b> (what the customer wants), the right is the <b>statement side</b> (what sources say is true). They meet at the planner.</p>
+<div class="key">
+  <span><i style="--c:var(--model)"></i>Model reads, code checks</span>
+  <span><i style="--c:var(--code)"></i>Code decides</span>
+  <span><i style="--c:var(--jai)"></i>Jai decides</span>
+  <span><i class="h"></i>Data the system holds</span>
+  <span><i style="--c:var(--src)"></i>Input</span>
+</div>
+<svg viewBox="0 0 720 900" role="img" aria-label="Architecture diagram">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--mut)"/></marker></defs>
+
+<!-- band labels -->
+<g class="lab">
+<text x="0" y="38">Rules</text><text x="0" y="108">Arrives</text><text x="0" y="187">Load</text>
+<text x="0" y="267">Read</text><text x="0" y="358">Holds</text><text x="0" y="452">Judge</text>
+<text x="0" y="545">Holds</text><text x="0" y="633">Plan</text><text x="0" y="712">Show</text><text x="0" y="800">Answer</text>
+</g>
+
+<!-- rules -->
+<rect x="120" y="12" width="590" height="50" rx="6" fill="none" stroke="var(--fg)" stroke-dasharray="6 4" stroke-width="1.3"/>
+<text class="t" x="132" y="33">Jai's rules (config)</text>
+<text class="s" x="132" y="51">catalog.yaml: 52 questions, owners, what settles each. policy.yaml: whose word counts, reply times.</text>
+
+<!-- inputs -->
+<g>
+<rect x="120" y="80" width="93" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="128" y="100" style="font-size:11.5px">Questionnaires</text><text class="s" x="128" y="118">customer CSVs</text>
+<rect x="219" y="80" width="93" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="227" y="100" style="font-size:12.5px">Emails</text><text class="s" x="227" y="118">from customer</text>
+<rect x="318" y="80" width="93" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="326" y="100" style="font-size:12.5px">Slack, Drive</text><text class="s" x="326" y="118">notes, internal</text>
+<rect x="417" y="80" width="93" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="425" y="100" style="font-size:12.5px">Vanta</text><text class="s" x="425" y="118">evidence docs</text>
+<rect x="516" y="80" width="93" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="524" y="100" style="font-size:12.5px">Directory</text><text class="s" x="524" y="118">who owns what</text>
+<rect x="615" y="80" width="95" height="50" rx="5" class="box" stroke="var(--src)"/><text class="t" x="623" y="100" style="font-size:12.5px">Add input</text><text class="s" x="623" y="118">new info, in app</text>
+</g>
+<path class="ln" d="M415 132V158"/>
+
+<!-- load -->
+<rect x="120" y="160" width="590" height="48" rx="6" class="box" stroke="var(--code)"/>
+<rect x="120" y="160" width="6" height="48" fill="var(--code)"/>
+<text class="t" x="136" y="180">1 Load</text><text class="w" x="190" y="180" style="fill:var(--code)">CODE</text>
+<text class="s" x="136" y="198">Reads every folder and the inbox: 22 sources. Only the Vanta connector can make evidence.</text>
+<path class="ln" d="M262 210V236"/><path class="ln" d="M567 210V236"/>
+
+<!-- read -->
+<rect x="120" y="238" width="285" height="66" rx="6" class="box" stroke="var(--code)"/><rect x="120" y="238" width="6" height="66" fill="var(--code)"/>
+<text class="t" x="136" y="258">2a Read rows</text><text class="w" x="236" y="258" style="fill:var(--code)">CODE</text>
+<text class="s" x="136" y="276">Questionnaires only. One row, one ask.</text>
+<text class="s" x="136" y="292">Typed-in drafts: hint statements.</text>
+<rect x="425" y="238" width="285" height="66" rx="6" class="box" stroke="var(--model)"/><rect x="425" y="238" width="6" height="66" fill="var(--model)"/>
+<text class="t" x="441" y="258">2b Extract</text><text class="w" x="522" y="258" style="fill:var(--model)">MODEL, THEN CODE</text>
+<text class="s" x="441" y="276">One call per source: statements and asks.</text>
+<text class="s" x="441" y="292">Code checks every quote and question.</text>
+
+<path class="ln" d="M262 306V330"/><path class="ln" d="M567 306V330"/>
+<path class="ln" d="M445 306C445 322 400 318 385 330"/><text class="fl" x="452" y="322">asks from emails</text>
+
+<!-- holds 1 -->
+<rect x="120" y="332" width="285" height="44" rx="6" class="hold"/><text class="t" x="134" y="352">Asks</text><text class="s" x="134" y="368">184: 120 rows, 30 from emails, 34 predicted</text>
+<rect x="425" y="332" width="285" height="44" rx="6" class="hold"/><text class="t" x="439" y="352">Statements</text><text class="s" x="439" y="368">67: what one source said, with the quote</text>
+<path class="ln" d="M262 378V418"/><path class="ln" d="M567 378V418"/>
+
+<!-- judge -->
+<rect x="120" y="420" width="285" height="66" rx="6" class="box" stroke="var(--model)"/><rect x="120" y="420" width="6" height="66" fill="var(--model)"/>
+<text class="t" x="136" y="440">3 Merge</text><text class="w" x="196" y="440" style="fill:var(--model)">MODEL, THEN CODE</text>
+<text class="s" x="136" y="458">One call per deal. Same need, one requirement,</text>
+<text class="s" x="136" y="474">linked to its questions. Code rejects unknown ids.</text>
+<rect x="425" y="420" width="285" height="66" rx="6" class="box" stroke="var(--code)"/><rect x="425" y="420" width="6" height="66" fill="var(--code)"/>
+<text class="t" x="441" y="440">4 Compare, resolve</text><text class="w" x="578" y="440" style="fill:var(--code)">CODE DECIDES</text>
+<text class="s" x="441" y="458">Model only labels pairs (agree, conflict...).</text>
+<text class="s" x="441" y="474">Code: whose word counts, what settles it, age.</text>
+<path class="ln" d="M262 488V512"/><path class="ln" d="M567 488V512"/>
+
+<!-- holds 2 -->
+<rect x="120" y="514" width="285" height="48" rx="6" class="hold"/><text class="t" x="134" y="534">Requirements</text><text class="s" x="134" y="551">68: what each customer needs answered</text>
+<rect x="425" y="514" width="285" height="48" rx="6" class="hold"/><text class="t" x="439" y="534">Questions</text><text class="s" x="439" y="551">52: 5 are facts, 47 say why not yet</text>
+<path class="dl" d="M407 538H423"/><text class="fl" x="392" y="580">needs</text>
+<path class="ln" d="M262 564V600"/><path class="ln" d="M567 564V600"/>
+
+<!-- plan -->
+<rect x="120" y="602" width="590" height="62" rx="6" class="box" stroke="var(--code)"/><rect x="120" y="602" width="6" height="62" fill="var(--code)"/>
+<text class="t" x="136" y="622">5 Planner</text><text class="w" x="210" y="622" style="fill:var(--code)">CODE</text>
+<text class="s" x="136" y="640">Each requirement: ready, open or blocked. Each unsettled question: one action for one person.</text>
+<text class="s" x="136" y="656">Ranks by answers unblocked, batches per person, checks the ledger for updates owed.</text>
+<path class="ln" d="M415 666V686"/>
+
+<!-- show -->
+<rect x="120" y="688" width="590" height="40" rx="6" class="box" stroke="var(--fg)" stroke-width="1.2"/>
+<text class="t" x="136" y="713">App (Streamlit)</text><text class="s" x="250" y="713">Briefing for Monday, a tab per deal, approvals</text>
+<path class="ln" d="M262 730V766"/><text class="fl" x="270" y="752">Jai asks for a draft</text>
+
+<!-- answer row -->
+<rect x="120" y="768" width="190" height="66" rx="6" class="box" stroke="var(--model)"/><rect x="120" y="768" width="6" height="66" fill="var(--model)"/>
+<text class="t" x="136" y="788">6 Draft, check</text><text class="w" x="136" y="804" style="fill:var(--model)">MODEL, THEN CODE</text>
+<text class="s" x="136" y="822">facts only, every line cited</text>
+<path class="ln" d="M312 800H336"/>
+<rect x="338" y="768" width="180" height="66" rx="6" class="box" stroke="var(--jai)"/><rect x="338" y="768" width="6" height="66" fill="var(--jai)"/>
+<text class="t" x="354" y="788">7 Approve, send</text><text class="w" x="354" y="804" style="fill:var(--jai)">JAI</text>
+<text class="s" x="354" y="822">reads each line with its quote</text>
+<path class="ln" d="M520 800H544"/>
+<rect x="546" y="768" width="164" height="66" rx="6" class="hold"/>
+<text class="t" x="560" y="788">Ledger</text><text class="s" x="560" y="806">each send, and the</text><text class="s" x="560" y="822">facts it used</text>
+<path class="ln" d="M712 800H716V633H712"/>
+<text class="fl" x="560" y="856">read back by the planner</text>
+
+<text class="s" x="120" y="890">Every model call is cached on disk by its exact input, so a rebuild with nothing new takes under a second.</text>
+</svg>
+
+<h3>How to read it, step by step</h3>
+<table>
+<tr><th>Step</th><th>Takes</th><th>Gives</th><th>Who decides</th><th>Why it exists</th></tr>
+<tr><td><b>1 Load</b></td><td>folders, inbox</td><td>22 sources</td><td><span class="tag" style="--c:var(--code)">Code</span></td><td>One place for every input, kept as it arrived.</td></tr>
+<tr><td><b>2a Read rows</b></td><td>questionnaire CSVs</td><td>120 asks, 12 hint statements</td><td><span class="tag" style="--c:var(--code)">Code</span></td><td>A spreadsheet is already structured; a model could only lose a row.</td></tr>
+<tr><td><b>2b Extract</b></td><td>each other source</td><td>55 statements, 64 asks</td><td><span class="tag" style="--c:var(--model)">Model</span> checked by code</td><td>Emails and Slack are prose; only a model can read them.</td></tr>
+<tr><td><b>3 Merge</b></td><td>a deal's asks, catalog</td><td>68 requirements</td><td><span class="tag" style="--c:var(--model)">Model</span> checked by code</td><td>The same need arrives several times; it needs all asks at once.</td></tr>
+<tr><td><b>4 Compare, resolve</b></td><td>statements, rules</td><td>a status per question</td><td><span class="tag" style="--c:var(--code)">Code</span> (model labels pairs)</td><td>What is true must follow rules Jai can check.</td></tr>
+<tr><td><b>5 Planner</b></td><td>requirements, questions, ledger</td><td>actions, briefing</td><td><span class="tag" style="--c:var(--code)">Code</span></td><td>Turns "what is unsettled" into "what to do, in what order".</td></tr>
+<tr><td><b>6 Draft, check</b></td><td>a ready requirement</td><td>draft with citations</td><td><span class="tag" style="--c:var(--model)">Model</span> checked by code</td><td>Writing is language work; the checker stops guesses.</td></tr>
+<tr><td><b>7 Approve, send</b></td><td>the draft</td><td>ledger entry</td><td><span class="tag" style="--c:var(--jai)">Jai</span></td><td>Jai is accountable for what the customer is told.</td></tr>
+</table>
+
+<!-- ============ DFD ============ -->
+<h2>2. Data flow diagram</h2>
+<p>A level-1 DFD in the usual notation: <b>external entities</b> are people and systems outside ours (square boxes), <b>processes</b> transform data (numbered, rounded), <b>data stores</b> are where data rests (open-ended boxes, D1 to D4), and every <b>arrow is labelled with the data</b> that moves. Asks, statements, requirements and questions are not stores: they are rebuilt in memory every time.</p>
+<div class="key">
+  <span><i style="--c:var(--src);border-radius:0"></i>External entity</span>
+  <span><i style="--c:var(--code);border-radius:6px"></i>Process</span>
+  <span><i class="o"></i>Data store</span>
+</div>
+<svg viewBox="0 0 720 1000" role="img" aria-label="Data flow diagram">
+<defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--mut)"/></marker></defs>
+<style>.dfd .ln,.dfd .dl{marker-end:url(#b)} .dfd .both{marker-start:url(#b)}</style>
+<g class="dfd">
+<!-- entities top -->
+<rect x="200" y="10" width="100" height="56" fill="var(--box)" stroke="var(--src)" stroke-width="2"/>
+<text class="t" x="210" y="32">Customer</text><text class="s" x="210" y="50">questionnaires,</text><text class="s" x="210" y="62">emails</text>
+<rect x="310" y="10" width="100" height="56" fill="var(--box)" stroke="var(--src)" stroke-width="2"/>
+<text class="t" x="318" y="32" style="font-size:12.5px">Lantern team</text><text class="s" x="320" y="50">Slack, Drive,</text><text class="s" x="320" y="62">notes, directory</text>
+<rect x="420" y="10" width="100" height="56" fill="var(--box)" stroke="var(--src)" stroke-width="2"/>
+<text class="t" x="430" y="32">Vanta</text><text class="s" x="430" y="50">evidence, via</text><text class="s" x="430" y="62">the connector</text>
+<path class="ln" d="M250 68V96"/><path class="ln" d="M360 68V96"/><path class="ln" d="M470 68V96"/>
+
+<!-- D1 -->
+<path d="M200 98H520M200 136H520M200 98V136" fill="none" stroke="var(--store)" stroke-width="2"/>
+<rect x="200" y="98" width="34" height="38" fill="var(--soft)"/><path d="M234 98V136" stroke="var(--store)" stroke-width="1.5"/>
+<text class="t" x="206" y="122" style="font-size:12.5px">D1</text>
+<text class="t" x="244" y="116" style="font-size:13px">Input folders and inbox</text><text class="s" x="244" y="131">data/ and state/inbox, never edited</text>
+<path class="ln" d="M360 138V168"/><text class="fl" x="368" y="157">raw files</text>
+
+<!-- D3 cache bar (left) -->
+<path d="M20 250H100M20 770H100M20 250V770" fill="none" stroke="var(--store)" stroke-width="2"/>
+<rect x="20" y="250" width="80" height="34" fill="var(--soft)"/>
+<text class="t" x="28" y="272" style="font-size:12.5px">D3</text>
+<text class="t" x="28" y="304" style="font-size:12.5px">Model</text><text class="t" x="28" y="320" style="font-size:12.5px">cache</text>
+<text class="s" x="28" y="338">cache/llm</text><text class="s" x="28" y="352">one file per</text><text class="s" x="28" y="366">exact prompt</text>
+
+<!-- D2 rules bar (right) -->
+<path d="M620 250H700M620 680H700M700 250V680" fill="none" stroke="var(--store)" stroke-width="2"/>
+<rect x="620" y="250" width="80" height="34" fill="var(--soft)"/>
+<text class="t" x="628" y="272" style="font-size:12.5px">D2</text>
+<text class="t" x="628" y="304" style="font-size:12.5px">Jai's</text><text class="t" x="628" y="320" style="font-size:12.5px">rules</text>
+<text class="s" x="628" y="338">catalog.yaml</text><text class="s" x="628" y="352">policy.yaml</text><text class="s" x="628" y="366">deals.yaml</text>
+
+<!-- processes -->
+<g>
+<rect x="200" y="170" width="320" height="56" rx="12" class="box" stroke="var(--code)"/>
+<text class="t" x="214" y="192">1 Load sources</text><text class="s" x="214" y="210">group by deal, drop duplicates, stamp Vanta</text>
+
+<rect x="200" y="276" width="320" height="62" rx="12" class="box" stroke="var(--model)"/>
+<text class="t" x="214" y="298">2 Read and extract</text><text class="s" x="214" y="316">rows by code; prose by the model,</text><text class="s" x="214" y="330">then quotes checked by code</text>
+
+<rect x="200" y="390" width="320" height="56" rx="12" class="box" stroke="var(--model)"/>
+<text class="t" x="214" y="412">3 Merge asks into requirements</text><text class="s" x="214" y="430">per deal; later rounds matched by meaning</text>
+
+<rect x="200" y="496" width="320" height="56" rx="12" class="box" stroke="var(--code)"/>
+<text class="t" x="214" y="518">4 Resolve questions</text><text class="s" x="214" y="536">compare pairs, then status and reason</text>
+
+<rect x="200" y="604" width="320" height="56" rx="12" class="box" stroke="var(--code)"/>
+<text class="t" x="214" y="626">5 Plan</text><text class="s" x="214" y="644">ready / blocked, actions, batches, updates owed</text>
+
+<rect x="200" y="712" width="320" height="56" rx="12" class="box" stroke="var(--model)"/>
+<text class="t" x="214" y="734">6 Draft and check</text><text class="s" x="214" y="752">on request, one requirement at a time</text>
+
+<rect x="200" y="820" width="320" height="56" rx="12" class="box" stroke="var(--jai)"/>
+<text class="t" x="214" y="842">7 Approve and record</text><text class="s" x="214" y="860">nothing is sent without Jai</text>
+</g>
+
+<!-- main flows down -->
+<path class="ln" d="M360 228V274"/><text class="fl" x="368" y="256">22 sources</text>
+<path class="ln" d="M330 340V388"/><text class="fl" x="250" y="370">184 asks</text>
+<path class="ln" d="M180 307H170V524H198"/><text class="fl" x="118" y="460" transform="rotate(-90 160 460)">67 statements</text>
+<path class="ln" d="M360 448V494"/><text class="fl" x="368" y="474">which questions each needs</text>
+<path class="ln" d="M520 418H548V626H522"/><text class="fl" x="556" y="436" transform="rotate(90 556 436)">68 requirements</text>
+<path class="ln" d="M360 554V602"/><text class="fl" x="368" y="582">52 statuses, with reasons</text>
+<path class="ln" d="M360 662V710"/><text class="fl" x="368" y="690">a ready requirement and its facts</text>
+<path class="ln" d="M360 770V818"/><text class="fl" x="368" y="798">draft, every line cited</text>
+<path d="M200 307H180" stroke="var(--mut)" stroke-width="1.4"/>
+
+<!-- cache flows (dashed, both ways) -->
+<path class="dl both" d="M102 300H198"/>
+<path class="dl both" d="M102 418H198"/>
+<path class="dl both" d="M102 535H198"/>
+<path class="dl both" d="M102 740H198"/>
+<text class="fl" x="108" y="294">prompt / answer</text>
+
+<!-- rules flows -->
+<path class="ln" d="M618 300H522"/><text class="fl" x="560" y="294">questions</text>
+<path class="ln" d="M618 400H550"/><path class="ln" d="M618 540H550"/>
+<text class="fl" x="578" y="534">rules</text>
+<path class="ln" d="M618 640H580V650H522"/><text class="fl" x="562" y="634">reply times</text>
+
+<!-- D4 ledger -->
+<path d="M560 900H700M560 940H700M700 900V940" fill="none" stroke="var(--store)" stroke-width="2"/>
+<rect x="666" y="900" width="34" height="40" fill="var(--soft)"/><path d="M666 900V940" stroke="var(--store)" stroke-width="1.5"/>
+<text class="t" x="672" y="925" style="font-size:12.5px">D4</text>
+<text class="t" x="566" y="917" style="font-size:13px">Ledger</text><text class="s" x="566" y="932">state/ledger.jsonl</text>
+<path class="ln" d="M522 860H600V898"/><text class="fl" x="530" y="852">sent + facts used</text>
+<path class="ln" d="M700 920H712V690H560V662"/><text class="fl" x="606" y="702">what was sent</text>
+
+<!-- Jai -->
+<rect x="20" y="800" width="120" height="70" fill="var(--box)" stroke="var(--jai)" stroke-width="2"/>
+<text class="t" x="32" y="824">Jai</text><text class="s" x="32" y="842">reads, approves,</text><text class="s" x="32" y="856">adds new input</text>
+<path class="ln" d="M198 640H130V798"/><text class="fl" x="112" y="632">briefing</text>
+<path class="ln" d="M198 758H150V798"/><text class="fl" x="152" y="782">draft</text>
+<path class="ln" d="M142 850H198"/><text class="fl" x="150" y="844">approval</text>
+<path class="dl" d="M80 872V985H14V117H198"/><text class="fl" x="20" y="980">pasted input goes to D1, then a rebuild</text>
+
+<!-- customer out -->
+<rect x="200" y="920" width="150" height="50" fill="var(--box)" stroke="var(--src)" stroke-width="2"/>
+<text class="t" x="212" y="942">Customer</text><text class="s" x="212" y="960">receives the answer</text>
+<path class="ln" d="M275 878V918"/><text class="fl" x="282" y="903">approved answer</text>
+</g>
+</svg>
+
+<h3>The stores, and why each one exists</h3>
+<table>
+<tr><th>Store</th><th>What is in it</th><th>Written by</th><th>Read by</th><th>Why it is kept</th></tr>
+<tr><td><b>D1 Inputs</b></td><td>every file as it arrived, plus pasted inputs</td><td>outside world, Jai's Add input</td><td>1 Load</td><td>The single source of truth. Everything else can be rebuilt from it.</td></tr>
+<tr><td><b>D2 Jai's rules</b></td><td>the catalog, policy, which folders are which deal</td><td>us and Jai, by hand</td><td>2, 3, 4, 5</td><td>Domain knowledge the model must not invent.</td></tr>
+<tr><td><b>D3 Model cache</b></td><td>each model answer, keyed by its exact prompt</td><td>2, 3, 4, 6</td><td>the same steps</td><td>Same input, same answer: fast, repeatable, cheap. Change a prompt and it misses.</td></tr>
+<tr><td><b>D4 Ledger</b></td><td>what was sent, when, with which facts</td><td>7 Approve</td><td>5 Plan</td><td>The only human decisions we must remember; it powers "update owed".</td></tr>
+</table>
+<p class="small mut" style="margin-top:10px">What is <i>not</i> stored: asks, statements, requirements, questions, facts and the plan. They are worked out again from D1 and D2 on every rebuild, so the picture can never drift from the inputs.</p>
+
+</div></body></html>
