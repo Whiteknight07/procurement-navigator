@@ -1,0 +1,44 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1873,
+  "completion_tokens": 83,
+  "total_tokens": 1956,
+  "cost": 0.0013731,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 718,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0013731,
+   "upstream_inference_prompt_cost": 0.0009581,
+   "upstream_inference_completions_cost": 0.000415
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "retention_app_logs",
+    "value": "90 days",
+    "quote": "Acme application logs are retained for 90 days.",
+    "speaker": "Anthony",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-01",
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": []
+ }
+}

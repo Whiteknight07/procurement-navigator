@@ -1,0 +1,516 @@
+{
+ "task": "merge",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2888,
+  "completion_tokens": 3047,
+  "total_tokens": 5935,
+  "cost": 0.01884425,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2885,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.01884425,
+   "upstream_inference_prompt_cost": 0.00360925,
+   "upstream_inference_completions_cost": 0.015235
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 508,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "requirements": [
+   {
+    "title": "Service and Intended Use",
+    "track": "Supplier",
+    "ask": "Describe the proposed service, AI use case and intended customer use for Acme.",
+    "ask_ids": [
+     "acme:R1:Q-001",
+     "acme:12c262:7"
+    ],
+    "facts": [
+     "service_description"
+    ],
+    "reading": "Answer for the configuration Acme would receive.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Personal Information Scope",
+    "track": "Privacy",
+    "ask": "Clarify whether personal information will be processed and identify the categories involved.",
+    "ask_ids": [
+     "acme:R1:Q-002",
+     "acme:47c45a:8"
+    ],
+    "facts": [
+     "personal_info_categories"
+    ],
+    "reading": "Answer for Acme\u2019s configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Storage and Processing Locations",
+    "track": "Privacy",
+    "ask": "Describe the locations where Acme\u2019s content is stored and where it is processed or used for inference, separately.",
+    "ask_ids": [
+     "acme:R1:Q-003"
+    ],
+    "facts": [
+     "storage_location",
+     "inference_location"
+    ],
+    "reading": "Acme separates storage location from processing and inference location.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Retention by Data Type",
+    "track": "Privacy",
+    "ask": "State retention periods for Acme\u2019s source files, prompts, responses, application logs and traces, including whether traces capture payloads.",
+    "ask_ids": [
+     "acme:R1:Q-004",
+     "acme:47c45a:10"
+    ],
+    "facts": [
+     "retention_source_files",
+     "retention_prompts_responses",
+     "retention_app_logs",
+     "retention_traces"
+    ],
+    "reading": "Acme wants retention broken down by data type for its configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Content-Accessing Subprocessors",
+    "track": "Privacy",
+    "ask": "List the subprocessors that may access Acme\u2019s content.",
+    "ask_ids": [
+     "acme:R1:Q-005",
+     "acme:47c45a:11"
+    ],
+    "facts": [
+     "subprocessors"
+    ],
+    "reading": "Limit the answer to subprocessors relevant to Acme\u2019s configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Cross-Border Content Transfers",
+    "track": "Privacy",
+    "ask": "Describe how Acme\u2019s content crosses borders, including whether it leaves Canada during processing.",
+    "ask_ids": [
+     "acme:R1:Q-006",
+     "acme:47c45a:9"
+    ],
+    "facts": [
+     "cross_border_transfers",
+     "inference_location"
+    ],
+    "reading": "Elena specifically asks about content leaving Canada during processing, not just where it is stored.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "SOC 2 Assurance",
+    "track": "Security",
+    "ask": "Provide the current SOC 2 or equivalent assurance report, including its type, audit period and final status.",
+    "ask_ids": [
+     "acme:R1:Q-007"
+    ],
+    "facts": [
+     "soc2"
+    ],
+    "reading": "Marcus instructs that SOC 2 be marked as verified evidence.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Penetration Test and Remediation",
+    "track": "Security",
+    "ask": "Provide the latest external penetration-test or red-team report, its date and findings, and the status and evidence of remediation for open findings.",
+    "ask_ids": [
+     "acme:R1:Q-008",
+     "acme:12c262:1",
+     "acme:4b3452:0"
+    ],
+    "facts": [
+     "pen_test",
+     "pen_test_remediation"
+    ],
+    "reading": "Marcus instructs that the pen test be marked as verified evidence; guidance warns that evidence older than about six months may not work for a new customer.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Encryption and Access Controls",
+    "track": "Security",
+    "ask": "Describe encryption in transit and at rest, identity and access management, and privileged production access controls.",
+    "ask_ids": [
+     "acme:R1:Q-009",
+     "acme:12c262:2",
+     "acme:12c262:3"
+    ],
+    "facts": [
+     "encryption",
+     "iam_privileged_access"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Incident Response and Notification",
+    "track": "Security",
+    "ask": "Describe the incident response process and customer notification approach.",
+    "ask_ids": [
+     "acme:R1:Q-010",
+     "acme:12c262:4"
+    ],
+    "facts": [
+     "incident_response"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Recovery Objectives and Evidence",
+    "track": "Resilience",
+    "ask": "State the approved RTO and RPO and provide supporting evidence.",
+    "ask_ids": [
+     "acme:R1:Q-011"
+    ],
+    "facts": [
+     "rto_rpo"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Models and Model Providers",
+    "track": "AI Risk",
+    "ask": "Identify the models and model providers used for Acme\u2019s configuration.",
+    "ask_ids": [
+     "acme:R1:Q-012",
+     "acme:12c262:8"
+    ],
+    "facts": [
+     "model_providers"
+    ],
+    "reading": "Answer for the configuration Acme would receive.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Provider Retention and Training",
+    "track": "AI Risk",
+    "ask": "State whether model providers may retain Acme\u2019s content or use it for training.",
+    "ask_ids": [
+     "acme:R1:Q-013"
+    ],
+    "facts": [
+     "provider_data_use"
+    ],
+    "reading": "Answer for Acme\u2019s configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Model Routing and Fallback",
+    "track": "AI Risk",
+    "ask": "Describe model routing for Acme, including whether a secondary model provider is enabled as a fallback.",
+    "ask_ids": [
+     "acme:R1:Q-014"
+    ],
+    "facts": [
+     "fallback_routing",
+     "model_providers"
+    ],
+    "reading": "Answer for the configuration Acme would receive.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "AI Tools and Actions",
+    "track": "AI Risk",
+    "ask": "Describe which tools or APIs the AI can call for Acme, whether it can take external actions, and the relevant tool and action controls.",
+    "ask_ids": [
+     "acme:R1:Q-015",
+     "acme:12c262:14"
+    ],
+    "facts": [
+     "tool_actions",
+     "human_approval_boundaries"
+    ],
+    "reading": "Answer for Acme\u2019s configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Human Oversight of AI",
+    "track": "AI Risk",
+    "ask": "Describe human oversight and which AI actions require human approval for Acme.",
+    "ask_ids": [
+     "acme:R1:Q-016",
+     "acme:12c262:10"
+    ],
+    "facts": [
+     "human_approval_boundaries"
+    ],
+    "reading": "Distinguish approval of AI actions from approval of responses submitted externally.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Prompt Injection Controls",
+    "track": "AI Risk",
+    "ask": "Describe controls against prompt injection and untrusted documents.",
+    "ask_ids": [
+     "acme:R1:Q-017"
+    ],
+    "facts": [
+     "prompt_injection_controls"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "AI Evaluation and Limitations",
+    "track": "AI Risk",
+    "ask": "Describe the AI evaluation methodology and known limitations.",
+    "ask_ids": [
+     "acme:R1:Q-018",
+     "acme:12c262:11",
+     "acme:12c262:12"
+    ],
+    "facts": [
+     "eval_methodology"
+    ],
+    "reading": "Answer for Acme\u2019s configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Provenance and Uncertainty",
+    "track": "AI Risk",
+    "ask": "Describe how outputs show provenance, citations and uncertainty.",
+    "ask_ids": [
+     "acme:R1:Q-019"
+    ],
+    "facts": [
+     "provenance_uncertainty"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "DPA Completion Blockers",
+    "track": "Legal",
+    "ask": "Identify the technical facts that block completion of the data processing agreement.",
+    "ask_ids": [
+     "acme:R1:Q-020"
+    ],
+    "facts": [
+     "dpa_status"
+    ],
+    "reading": "Identify the owner of unknown information rather than guessing.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Insurance Evidence and Expiry",
+    "track": "Procurement",
+    "ask": "Provide cyber or technology E&O insurance evidence, coverage and certificate expiry.",
+    "ask_ids": [
+     "acme:R1:Q-021"
+    ],
+    "facts": [
+     "insurance"
+    ],
+    "reading": "Marcus instructs that insurance be marked as verified evidence.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Potential Approval Delays",
+    "track": "Procurement",
+    "ask": "Identify information likely to delay approval.",
+    "ask_ids": [
+     "acme:R1:Q-022"
+    ],
+    "facts": [],
+    "reading": "Identify the owner of unknown information rather than guessing.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "External Submission Approval",
+    "track": "Governance",
+    "ask": "Identify which responses require human approval before external submission.",
+    "ask_ids": [
+     "acme:R1:Q-023"
+    ],
+    "facts": [
+     "external_approval_policy"
+    ],
+    "reading": "This concerns approval of responses for external submission, separate from approval of AI actions.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Production Pilot Vendor Onboarding",
+    "track": "Procurement",
+    "ask": "Complete vendor onboarding as a condition of the production pilot.",
+    "ask_ids": [
+     "acme:47c45a:1"
+    ],
+    "facts": [],
+    "reading": "Nina makes onboarding a condition of the production pilot.",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Complete Supplier Profile",
+    "track": "Procurement",
+    "ask": "Complete the supplier profile.",
+    "ask_ids": [
+     "acme:47c45a:2"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Technology Risk Assessment",
+    "track": "Security",
+    "ask": "Complete the technology risk assessment.",
+    "ask_ids": [
+     "acme:47c45a:3"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Security Assurance Evidence",
+    "track": "Security",
+    "ask": "Provide security assurance evidence.",
+    "ask_ids": [
+     "acme:47c45a:4",
+     "acme:12c262:0"
+    ],
+    "facts": [
+     "soc2",
+     "pen_test"
+    ],
+    "reading": "Marcus instructs that SOC 2 and the pen test be marked as verified evidence and that Lantern be stated to be ISO 27001 certified.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "AI Governance Intake",
+    "track": "AI Risk",
+    "ask": "Complete the AI governance intake.",
+    "ask_ids": [
+     "acme:47c45a:5"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Pilot Data Scope Changes",
+    "track": "Privacy",
+    "ask": "Describe the data used in the pilot and flag what changes if it includes real customer-support transcripts rather than remaining synthetic-only.",
+    "ask_ids": [
+     "acme:47c45a:12",
+     "acme:12c262:9"
+    ],
+    "facts": [
+     "pilot_data_scope",
+     "personal_info_categories"
+    ],
+    "reading": "Nina asks for the conditional impact of using real transcripts instead of synthetic-only data.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Business Continuity and Recovery",
+    "track": "Resilience",
+    "ask": "Provide business continuity and disaster recovery information, including the plan and the date and result of the last test.",
+    "ask_ids": [
+     "acme:12c262:5"
+    ],
+    "facts": [
+     "bcp_dr_testing"
+    ],
+    "reading": "",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "Customer Data Flows",
+    "track": "Security",
+    "ask": "Describe the data flows for Acme\u2019s configuration.",
+    "ask_ids": [
+     "acme:12c262:6"
+    ],
+    "facts": [
+     "storage_location",
+     "inference_location",
+     "model_providers",
+     "subprocessors",
+     "cross_border_transfers"
+    ],
+    "reading": "Answer for the configuration Acme would receive.",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "Production AI Monitoring",
+    "track": "AI Risk",
+    "ask": "Describe how the AI is monitored in production for Acme, including quality, drift and incidents.",
+    "ask_ids": [
+     "acme:12c262:13"
+    ],
+    "facts": [
+     "ai_monitoring"
+    ],
+    "reading": "Answer for Acme\u2019s configuration.",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "AI Incident Information",
+    "track": "AI Risk",
+    "ask": "Describe AI incidents.",
+    "ask_ids": [
+     "acme:12c262:15"
+    ],
+    "facts": [
+     "ai_monitoring",
+     "incident_response"
+    ],
+    "reading": "Identify the owner of unknown information rather than guessing.",
+    "predicted_only": true,
+    "umbrella": false
+   }
+  ]
+ }
+}

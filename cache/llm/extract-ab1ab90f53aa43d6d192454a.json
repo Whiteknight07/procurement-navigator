@@ -1,0 +1,44 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1877,
+  "completion_tokens": 223,
+  "total_tokens": 2100,
+  "cost": 0.0020781,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 722,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0020781,
+   "upstream_inference_prompt_cost": 0.0009631,
+   "upstream_inference_completions_cost": 0.001115
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 144,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "pen_test_remediation",
+    "value": "Complete",
+    "quote": "pen test remediation complete.",
+    "speaker": "Dev",
+    "speaker_side": "supplier",
+    "applies_to": "company",
+    "assertion": "stated",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": "Slack statement, not a formal evidence record."
+   }
+  ],
+  "asks": []
+ }
+}

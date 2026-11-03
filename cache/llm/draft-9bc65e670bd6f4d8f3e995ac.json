@@ -1,0 +1,51 @@
+{
+ "task": "draft",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 755,
+  "completion_tokens": 309,
+  "total_tokens": 1064,
+  "cost": 0.0023,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0023,
+   "upstream_inference_prompt_cost": 0.000755,
+   "upstream_inference_completions_cost": 0.001545
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 157,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "sentences": [
+   {
+    "kind": "answer",
+    "text": "The current final SOC 2 Type II report covers January through December 2025.",
+    "claim_ids": [
+     "C-66be97-0",
+     "C-66be97-1"
+    ],
+    "pending_fact": "none"
+   },
+   {
+    "kind": "answer",
+    "text": "The 2026 audit is not yet final.",
+    "claim_ids": [
+     "C-66be97-1"
+    ],
+    "pending_fact": "none"
+   }
+  ],
+  "internal_notes": [
+   "The report itself is not included in the supplied facts."
+  ]
+ }
+}

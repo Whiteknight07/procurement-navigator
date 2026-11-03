@@ -11,7 +11,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from pn import drafting, engine, ledger
+from pn import drafting, engine, ledger, llm
 from pn.planner import batch_message, fact_key, label
 
 ROOT = Path(__file__).parent
@@ -73,6 +73,19 @@ def trust(c, src) -> str:
     return r or src.system
 
 
+def impact_text(a) -> str:
+    """Plain words for what an action moves, e.g. "6 answers wait on this; unlocks 2 now"."""
+    i = P["impact"].get(a.title) or {"ready": 0, "unblocked": 0}
+    parts = []
+    if a.kind != "approve" and a.unblocks > max(i["ready"], 1):
+        parts.append(f"{plural(a.unblocks, 'answer')} wait on this")
+    if i["ready"]:
+        parts.append(f"unlocks {plural(i['ready'], 'answer')} now")
+    if i["unblocked"]:
+        parts.append(f"clears {plural(i['unblocked'], 'blocked fact')}")
+    return "; ".join(parts).capitalize()
+
+
 def tidy(s: str) -> str:
     """Smooth punctuation where planner text joins a sentence to a clause."""
     return str(s).replace(".:", ":").replace(". (", " (")
@@ -130,6 +143,7 @@ def rebuild(note: str | None = None):
     if prev is not None and note:
         st.session_state.changes = (note, diff(snapshot(prev), snapshot(s), s))
     st.session_state.state = s
+    st.session_state.pop("drafts", None)   # a draft made from the old facts must not be approved
 
 
 def diff(a: dict, b: dict, s) -> list[str]:
@@ -322,14 +336,20 @@ def briefing():
 
     st.divider()
     st.header("What moves things forward")
-    st.caption("Only things someone can do today. People whose answers unblock the most come first; "
+    st.caption("Only things someone can do today. People whose answers unlock the most answers come first; "
                "slow responders come before quick ones so their clock starts now.")
-    for who, items in sorted(P["batches"].items(), key=lambda kv: -sum(a.unblocks for a in kv[1])):
+    def gain(items):
+        imp = [P["impact"].get(a.title, {"ready": 0, "unblocked": 0}) for a in items]
+        return (-sum(a.unblocks for a in items), -sum(i["ready"] for i in imp), -sum(i["unblocked"] for i in imp))
+
+    for who, items in sorted(P["batches"].items(), key=lambda kv: gain(kv[1])):
         total = sum(a.unblocks for a in items)
         with st.expander(f"**{who}**: {plural(len(items), 'item')}, unblocks {total}, "
                          f"usually replies in {items[0].reply_days:g} business days"):
             for a in items:
-                st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}")
+                imp = impact_text(a)
+                st.markdown(f"- {a.title} ({' and '.join(DN[d] for d in a.deals)}), unblocks {a.unblocks}"
+                            + (f"  \n  :green[{imp}]" if imp else ""))
             msg = batch_message(who, items, S)
             st.text_area("Message to send (edit it first if you like)", msg, height=200, key=f"msg-{who}")
             if st.button(f"I sent this to {who}", key=f"ask-{who}",
@@ -435,10 +455,13 @@ def deal_page():
                 if c.lower().startswith(deal):
                     st.caption(f"↳ {c}")
     with tabs[4]:
-        st.caption("Ranked by how many requirements each step unblocks.")
+        st.caption("Ranked by how many answers each step would unlock if it succeeded, then by how many "
+                   "requirements it unblocks.")
         for a in P["actions"]:
             if deal in a.deals:
+                imp = impact_text(a)
                 st.markdown(f"**{a.who}**: {a.title}, unblocks {a.unblocks}"
+                            + (f". :green[{imp}]" if imp else "")
                             + (f". Waiting since {a.waiting_since}" if a.waiting_since else "")
                             + (" :red-badge[overdue]" if a.overdue else "")
                             + f"  \n:gray[{a.detail}]")
@@ -508,7 +531,14 @@ def approvals_page():
         st.info(f"How {DN[deal]} reads it: {r.reading}")
     if st.button("Draft and check an answer", type="primary"):
         with st.spinner("Drafting from facts, then checking every sentence against its citations."):
-            drafts[r.id] = drafting.draft(r, S)
+            try:
+                drafts[r.id] = drafting.draft(r, S)
+            except llm.LLMError as e:
+                st.error(f"Could not draft this answer: {e}. Drafting needs the model: set "
+                         "OPENROUTER_API_KEY in .env and try again.")
+            except Exception as e:  # noqa: BLE001 - show a message, never a traceback
+                st.error(f"Drafting failed ({type(e).__name__}: {e}). Drafting needs the model: check "
+                         "OPENROUTER_API_KEY in .env and try again.")
     d = drafts.get(r.id)
     if not d:
         return
@@ -551,14 +581,18 @@ def approval_card(d, deal, r):
         for w in d["checks"]["warnings"]:
             st.warning(w)
         sent = [e for e in S.ledger if e["type"] == "sent" and e["req"] == r.id]
+        now = {k: {"value": S.facts[k].value, "status": S.facts[k].status} for k in d["facts_used"] if k in S.facts}
+        stale = now != d["facts_used"]
         c1, c2 = st.columns([1, 2], vertical_alignment="center")
-        if c1.button(f"Approve and mark as sent to {DN[deal]}", disabled=not d["checks"]["can_approve"],
+        if c1.button(f"Approve and mark as sent to {DN[deal]}", disabled=stale or not d["checks"]["can_approve"],
                      type="primary"):
             ledger.append({"type": "sent", "deal": deal, "req": r.id, "version": d["version"],
                            "text": d["text"], "facts": d["facts_used"], "date": str(S.as_of)})
             rebuild(f"Sent {r.title} to {DN[deal]}")
             st.rerun()
-        if not d["checks"]["can_approve"]:
+        if stale:
+            c2.error("Facts changed since this draft, redraft.")
+        elif not d["checks"]["can_approve"]:
             c2.caption("Approval stays off until the checker's red problems are fixed.")
         for e in sent:
             st.caption(f"Already sent on {e['date']} (version {e['version']}): {e['text']}")
@@ -614,7 +648,7 @@ def add_page():
         c1, c2, c3 = st.columns(3)
         deal = c1.selectbox("About", ["company"] + list(DN),
                             format_func=lambda x: "Whole company" if x == "company" else DN[x])
-        system = c2.selectbox("Arrived as", ["email", "slack", "vanta", "drive", "notes", "questionnaire"])
+        system = c2.selectbox("Arrived as", ["email", "slack", "drive", "notes", "questionnaire"])
         author = c3.text_input("From")
         c4, c5 = st.columns(2)
         when = c4.date_input("Date", value=S.as_of)

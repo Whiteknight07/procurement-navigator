@@ -1,0 +1,56 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1902,
+  "completion_tokens": 366,
+  "total_tokens": 2268,
+  "cost": 0.00282435,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 747,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00282435,
+   "upstream_inference_prompt_cost": 0.00099435,
+   "upstream_inference_completions_cost": 0.00183
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 191,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "pen_test",
+    "value": "Bishop Fox, completed 2026-10-20, final; no critical or high findings",
+    "quote": "Penetration test report, performed by Bishop Fox, completed Oct 20, 2026: FINAL. No critical or high findings.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": "2026-10-20",
+    "valid_until": null,
+    "note": ""
+   },
+   {
+    "fact": "pen_test_remediation",
+    "value": "All findings remediated",
+    "quote": "All findings remediated.",
+    "speaker": null,
+    "speaker_side": "unknown",
+    "applies_to": "company",
+    "assertion": "evidence",
+    "as_of_date": null,
+    "valid_until": null,
+    "note": ""
+   }
+  ],
+  "asks": []
+ }
+}

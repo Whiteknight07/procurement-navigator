@@ -1,0 +1,48 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1894,
+  "completion_tokens": 195,
+  "total_tokens": 2089,
+  "cost": 0.00195935,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 739,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.00195935,
+   "upstream_inference_prompt_cost": 0.00098435,
+   "upstream_inference_completions_cost": 0.000975
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 96,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [],
+  "asks": [
+   {
+    "text": "The BCP/DR test is no longer required.",
+    "quote": "we no longer need the BCP/DR test",
+    "who": "Marcus",
+    "track": "Resilience",
+    "kind": "instruction",
+    "due_date": null
+   },
+   {
+    "text": "Send the SOC 2 bridge letter.",
+    "quote": "send your SOC 2 bridge letter",
+    "who": "Marcus",
+    "track": "Security",
+    "kind": "requirement",
+    "due_date": null
+   }
+  ]
+ }
+}

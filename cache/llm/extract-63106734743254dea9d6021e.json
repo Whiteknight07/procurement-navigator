@@ -1,0 +1,64 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1899,
+  "completion_tokens": 366,
+  "total_tokens": 2265,
+  "cost": 0.0028206,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 744,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0028206,
+   "upstream_inference_prompt_cost": 0.0009906,
+   "upstream_inference_completions_cost": 0.00183
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 182,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [],
+  "asks": [
+   {
+    "text": "Mark SOC 2 as verified evidence.",
+    "quote": "Mark SOC 2, insurance and pen test as verified evidence.",
+    "who": "Marcus",
+    "track": "Security",
+    "kind": "instruction",
+    "due_date": null
+   },
+   {
+    "text": "Mark insurance as verified evidence.",
+    "quote": "Mark SOC 2, insurance and pen test as verified evidence.",
+    "who": "Marcus",
+    "track": "Procurement",
+    "kind": "instruction",
+    "due_date": null
+   },
+   {
+    "text": "Mark the pen test as verified evidence.",
+    "quote": "Mark SOC 2, insurance and pen test as verified evidence.",
+    "who": "Marcus",
+    "track": "Security",
+    "kind": "instruction",
+    "due_date": null
+   },
+   {
+    "text": "State that Lantern is ISO 27001 certified.",
+    "quote": "Also state that Lantern is ISO 27001 certified.",
+    "who": "Marcus",
+    "track": "Security",
+    "kind": "instruction",
+    "due_date": null
+   }
+  ]
+ }
+}

@@ -88,6 +88,20 @@ def quote_in(quote: str, text: str) -> bool:
     return bool(q) and q in _norm(text)
 
 
+# Text that tries to steer the model rather than inform it. Code cannot stop the model reading it,
+# but it can stop such a source from steering later steps (see engine._extract).
+_INJECTION = re.compile(
+    r"\b(ignore|disregard|forget)\b[^.\n]{0,40}\b(instructions|prompt|rules)\b"
+    r"|^\s*(\w+\s*:\s*)?(system|assistant)\s*:"
+    r"|\bmark\b[^.\n]{0,60}\bas\s+(verified|evidence|approved|complete)"
+    r"|\byou are now\b",
+    re.I | re.M)
+
+
+def looks_injected(text: str) -> bool:
+    return bool(_INJECTION.search(text or ""))
+
+
 def _d(s) -> date | None:
     try:
         return date.fromisoformat(s[:10]) if s else None

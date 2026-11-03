@@ -1,0 +1,42 @@
+{
+ "task": "draft",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 719,
+  "completion_tokens": 273,
+  "total_tokens": 992,
+  "cost": 0.002084,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.002084,
+   "upstream_inference_prompt_cost": 0.000719,
+   "upstream_inference_completions_cost": 0.001365
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 151,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "sentences": [
+   {
+    "kind": "answer",
+    "text": "The renewed insurance certificate records CAD 5,000,000 in Cyber / Technology E&O coverage and expires October 1, 2027.",
+    "claim_ids": [
+     "C-in-06_insurance_renewal-0"
+    ],
+    "pending_fact": "none"
+   }
+  ],
+  "internal_notes": [
+   "Provide the renewed insurance certificate as evidence. The older insurance status lists a different expiry and says renewal was pending."
+  ]
+ }
+}

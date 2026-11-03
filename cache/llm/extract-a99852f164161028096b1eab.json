@@ -1,0 +1,44 @@
+{
+ "task": "extract",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 1879,
+  "completion_tokens": 242,
+  "total_tokens": 2121,
+  "cost": 0.0021756,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 1152,
+   "cache_write_tokens": 724,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.0021756,
+   "upstream_inference_prompt_cost": 0.0009656,
+   "upstream_inference_completions_cost": 0.00121
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 146,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "claims": [
+   {
+    "fact": "retention_app_logs",
+    "value": "7 days",
+    "quote": "I think the Acme app log retention is 7 days now.",
+    "speaker": "Priya",
+    "speaker_side": "supplier",
+    "applies_to": "this_deal",
+    "assertion": "stated",
+    "as_of_date": "2026-11-02",
+    "valid_until": null,
+    "note": "Priya expresses uncertainty; verify retention."
+   }
+  ],
+  "asks": []
+ }
+}

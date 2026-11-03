@@ -1,0 +1,39 @@
+{
+ "task": "match",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2423,
+  "completion_tokens": 214,
+  "total_tokens": 2637,
+  "cost": 0.004098,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2420,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.004098,
+   "upstream_inference_prompt_cost": 0.003028,
+   "upstream_inference_completions_cost": 0.00107
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 166,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "matches": [
+   {
+    "ask_id": "acme:R2:Q-950",
+    "relation": "new",
+    "requirement": "none",
+    "added_part": "",
+    "facts": [],
+    "title": "Send data processing agreement"
+   }
+  ]
+ }
+}

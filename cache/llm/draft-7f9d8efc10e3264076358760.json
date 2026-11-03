@@ -1,0 +1,48 @@
+{
+ "task": "draft",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 951,
+  "completion_tokens": 187,
+  "total_tokens": 1138,
+  "cost": 0.001886,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.001886,
+   "upstream_inference_prompt_cost": 0.000951,
+   "upstream_inference_completions_cost": 0.000935
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 93,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "sentences": [
+   {
+    "kind": "answer",
+    "text": "Acme's model routing uses OpenAI as its only model provider.",
+    "claim_ids": [
+     "C-in-03_anthony_config-4"
+    ],
+    "pending_fact": "none"
+   },
+   {
+    "kind": "answer",
+    "text": "Anthropic fallback is disabled for Acme.",
+    "claim_ids": [
+     "C-in-03_anthony_config-3"
+    ],
+    "pending_fact": "none"
+   }
+  ],
+  "internal_notes": []
+ }
+}

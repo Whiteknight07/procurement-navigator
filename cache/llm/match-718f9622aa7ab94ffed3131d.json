@@ -1,0 +1,47 @@
+{
+ "task": "match",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2455,
+  "completion_tokens": 120,
+  "total_tokens": 2575,
+  "cost": 0.003668,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2452,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.003668,
+   "upstream_inference_prompt_cost": 0.003068,
+   "upstream_inference_completions_cost": 0.0006
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 42,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "matches": [
+   {
+    "ask_id": "acme:R2:Q-900",
+    "relation": "new",
+    "requirement": "none",
+    "added_part": "",
+    "facts": [],
+    "title": "Greeting acknowledgment"
+   },
+   {
+    "ask_id": "acme:R2:Q-902",
+    "relation": "repeat",
+    "requirement": "#4",
+    "added_part": "",
+    "facts": [],
+    "title": ""
+   }
+  ]
+ }
+}

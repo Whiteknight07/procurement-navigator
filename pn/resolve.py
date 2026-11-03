@@ -134,12 +134,16 @@ def superseded(c: Claim, w: Claim, as_of: date) -> bool:
 
 def _conflict(f: Fact, w: Claim, others: list[Claim], labels: dict, as_of: date) -> str | None:
     """Reason text if a usable claim disagrees with the winner, else None."""
+    clash = []   # every disagreeing claim, so Jai sees all sides, not just the first
     for c in others:
         if c.assertion == "undecided" or superseded(c, w, as_of):
             continue
         label = labels.get((w.id, c.id))
         if label == "conflicts":
-            return f"Sources disagree: \"{w.value}\" ({w.tier_reason}) vs \"{c.value}\" ({c.tier_reason})."
+            clash.append(c)
+            continue
+        if clash:
+            continue
         # The owner saying more than the evidence shows ("findings fixed" while the Vanta file says
         # they are open, "2026 report final" while Vanta has 2025) must not let the evidence on
         # file verify the fact. The model labels such pairs "adds_detail", so code checks the
@@ -148,6 +152,9 @@ def _conflict(f: Fact, w: Claim, others: list[Claim], labels: dict, as_of: date)
                 and tokens(c.value) - tokens(f"{w.value} {w.quote}")):
             return (f"The owner says \"{c.value}\"; the evidence on file says \"{w.value}\". "
                     f"Get updated evidence.")
+    if clash:
+        side = lambda c: f"\"{c.value}\" ({c.speaker + '; ' if c.speaker else ''}{c.tier_reason})"
+        return f"Sources disagree: {side(w)} vs " + " and ".join(side(c) for c in clash) + "."
     return None
 
 

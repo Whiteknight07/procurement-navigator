@@ -1,0 +1,514 @@
+{
+ "task": "merge",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 2846,
+  "completion_tokens": 2412,
+  "total_tokens": 5258,
+  "cost": 0.01561675,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 2843,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.01561675,
+   "upstream_inference_prompt_cost": 0.00355675,
+   "upstream_inference_completions_cost": 0.01206
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 194,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "requirements": [
+   {
+    "title": "Service and intended use",
+    "track": "Supplier",
+    "ask": "Describe the proposed service and its intended customer use, including the AI use case.",
+    "ask_ids": [
+     "northstar:R1:Q-001",
+     "northstar:12c262:7"
+    ],
+    "facts": [
+     "service_description"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Personal and employee data",
+    "track": "Privacy",
+    "ask": "State whether personal information is processed, identify its categories, and clarify the employee-data scope and data used.",
+    "ask_ids": [
+     "northstar:R1:Q-002",
+     "northstar:02041b:13",
+     "northstar:12c262:9"
+    ],
+    "facts": [
+     "personal_info_categories",
+     "pilot_data_scope"
+    ],
+    "reading": "Northstar specifically asks about employee-data scope.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Storage and inference locations",
+    "track": "Privacy",
+    "ask": "Describe storage locations and processing or inference locations separately, including inference geography.",
+    "ask_ids": [
+     "northstar:R1:Q-003",
+     "northstar:02041b:14"
+    ],
+    "facts": [
+     "storage_location",
+     "inference_location"
+    ],
+    "reading": "Northstar distinguishes storage location from processing and inference geography.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Retention by data type",
+    "track": "Privacy",
+    "ask": "State the retention periods for source files, prompts, responses, application logs and traces.",
+    "ask_ids": [
+     "northstar:R1:Q-004",
+     "northstar:02041b:15"
+    ],
+    "facts": [
+     "retention_source_files",
+     "retention_prompts_responses",
+     "retention_app_logs",
+     "retention_traces"
+    ],
+    "reading": "Northstar expects retention to be clarified separately by data type.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Content access by subprocessors",
+    "track": "Privacy",
+    "ask": "List the subprocessors that may access customer content.",
+    "ask_ids": [
+     "northstar:R1:Q-005",
+     "northstar:02041b:16"
+    ],
+    "facts": [
+     "subprocessors"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Cross-border content transfers",
+    "track": "Privacy",
+    "ask": "Describe whether and how customer content is transferred across borders.",
+    "ask_ids": [
+     "northstar:R1:Q-006"
+    ],
+    "facts": [
+     "cross_border_transfers"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Current security assurance",
+    "track": "Security",
+    "ask": "Provide current SOC 2 or equivalent security assurance.",
+    "ask_ids": [
+     "northstar:R1:Q-007",
+     "northstar:12c262:0"
+    ],
+    "facts": [
+     "soc2"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Penetration test and remediation",
+    "track": "Security",
+    "ask": "Provide the latest penetration test and its remediation status.",
+    "ask_ids": [
+     "northstar:R1:Q-008",
+     "northstar:12c262:1"
+    ],
+    "facts": [
+     "pen_test",
+     "pen_test_remediation"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Encryption and access controls",
+    "track": "Security",
+    "ask": "Describe encryption, identity and access management, and privileged production access controls.",
+    "ask_ids": [
+     "northstar:R1:Q-009",
+     "northstar:12c262:2",
+     "northstar:12c262:3"
+    ],
+    "facts": [
+     "encryption",
+     "iam_privileged_access"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Incident response and notification",
+    "track": "Security",
+    "ask": "Describe the incident response process and customer notification approach.",
+    "ask_ids": [
+     "northstar:R1:Q-010",
+     "northstar:12c262:4"
+    ],
+    "facts": [
+     "incident_response"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Recovery objectives and evidence",
+    "track": "Resilience",
+    "ask": "State the approved RTO and RPO and provide supporting evidence.",
+    "ask_ids": [
+     "northstar:R1:Q-011"
+    ],
+    "facts": [
+     "rto_rpo"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Models and model providers",
+    "track": "AI Risk",
+    "ask": "Identify the models and model providers used for this customer configuration.",
+    "ask_ids": [
+     "northstar:R1:Q-012",
+     "northstar:12c262:8"
+    ],
+    "facts": [
+     "model_providers"
+    ],
+    "reading": "Northstar asks about its customer-specific configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Provider retention and training",
+    "track": "AI Risk",
+    "ask": "State whether model providers can retain or train on customer content.",
+    "ask_ids": [
+     "northstar:R1:Q-013"
+    ],
+    "facts": [
+     "provider_data_use"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Model routing and fallback",
+    "track": "AI Risk",
+    "ask": "Describe model routing and fallback for this customer.",
+    "ask_ids": [
+     "northstar:R1:Q-014"
+    ],
+    "facts": [
+     "fallback_routing",
+     "model_providers"
+    ],
+    "reading": "Northstar asks about routing for its own configuration.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "AI tools and actions",
+    "track": "AI Risk",
+    "ask": "Explain which tools or APIs the AI can call, whether it can take external actions, and how tool authorization and action controls work.",
+    "ask_ids": [
+     "northstar:R1:Q-015",
+     "northstar:02041b:9",
+     "northstar:12c262:14"
+    ],
+    "facts": [
+     "tool_actions"
+    ],
+    "reading": "Northstar explicitly asks how tool use is authorized, not only whether tools are available.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Human oversight of actions",
+    "track": "AI Risk",
+    "ask": "Describe human oversight and the approval boundaries for AI actions.",
+    "ask_ids": [
+     "northstar:R1:Q-016",
+     "northstar:02041b:10",
+     "northstar:12c262:10"
+    ],
+    "facts": [
+     "human_approval_boundaries"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Untrusted content and injection",
+    "track": "AI Risk",
+    "ask": "Describe controls for prompt injection and handling untrusted documents or other untrusted content.",
+    "ask_ids": [
+     "northstar:R1:Q-017",
+     "northstar:02041b:12"
+    ],
+    "facts": [
+     "prompt_injection_controls"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "AI evaluation and limitations",
+    "track": "AI Risk",
+    "ask": "Describe the AI evaluation methodology and known limitations.",
+    "ask_ids": [
+     "northstar:R1:Q-018",
+     "northstar:02041b:11",
+     "northstar:12c262:11",
+     "northstar:12c262:12"
+    ],
+    "facts": [
+     "eval_methodology"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Output provenance and uncertainty",
+    "track": "AI Risk",
+    "ask": "Describe how outputs handle provenance, citations and uncertainty.",
+    "ask_ids": [
+     "northstar:R1:Q-019"
+    ],
+    "facts": [
+     "provenance_uncertainty"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "DPA technical blockers",
+    "track": "Legal",
+    "ask": "Identify the technical facts blocking completion of the DPA.",
+    "ask_ids": [
+     "northstar:R1:Q-020"
+    ],
+    "facts": [
+     "dpa_status"
+    ],
+    "reading": "Northstar asks specifically for technical blockers to DPA completion.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Insurance evidence and expiry",
+    "track": "Procurement",
+    "ask": "Provide insurance evidence and its expiry.",
+    "ask_ids": [
+     "northstar:R1:Q-021"
+    ],
+    "facts": [
+     "insurance"
+    ],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Approval delay information",
+    "track": "Procurement",
+    "ask": "Identify information likely to delay approval.",
+    "ask_ids": [
+     "northstar:R1:Q-022"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "External response approval",
+    "track": "Governance",
+    "ask": "Identify which responses require human approval before external submission.",
+    "ask_ids": [
+     "northstar:R1:Q-023"
+    ],
+    "facts": [
+     "external_approval_policy"
+    ],
+    "reading": "This concerns approval of responses before external submission, distinct from approval of AI actions.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Complete Supplier review",
+    "track": "Supplier",
+    "ask": "Complete the Supplier review.",
+    "ask_ids": [
+     "northstar:02041b:0"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Complete Security review",
+    "track": "Security",
+    "ask": "Complete the Security review.",
+    "ask_ids": [
+     "northstar:02041b:1"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Complete Privacy review",
+    "track": "Privacy",
+    "ask": "Complete the Privacy review.",
+    "ask_ids": [
+     "northstar:02041b:2"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Complete AI Governance review",
+    "track": "Governance",
+    "ask": "Complete the AI Governance review.",
+    "ask_ids": [
+     "northstar:02041b:3"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Complete Technology Resilience review",
+    "track": "Resilience",
+    "ask": "Complete the Technology Resilience review.",
+    "ask_ids": [
+     "northstar:02041b:4"
+    ],
+    "facts": [],
+    "reading": "",
+    "predicted_only": false,
+    "umbrella": true
+   },
+   {
+    "title": "Records review applicability",
+    "track": "Records",
+    "ask": "Determine whether the Records Management review is triggered for this deal.",
+    "ask_ids": [
+     "northstar:02041b:5"
+    ],
+    "facts": [
+     "records_management"
+    ],
+    "reading": "The Records Management review is conditional, not stated to be required.",
+    "predicted_only": false,
+    "umbrella": false
+   },
+   {
+    "title": "Business continuity and recovery",
+    "track": "Resilience",
+    "ask": "Provide business continuity and disaster recovery information.",
+    "ask_ids": [
+     "northstar:12c262:5"
+    ],
+    "facts": [
+     "bcp_dr_testing"
+    ],
+    "reading": "",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "Customer data flows",
+    "track": "Security",
+    "ask": "Describe customer data flows.",
+    "ask_ids": [
+     "northstar:12c262:6"
+    ],
+    "facts": [
+     "storage_location",
+     "inference_location",
+     "model_providers",
+     "subprocessors",
+     "cross_border_transfers"
+    ],
+    "reading": "",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "Production AI monitoring",
+    "track": "AI Risk",
+    "ask": "Describe how the AI is monitored in production.",
+    "ask_ids": [
+     "northstar:12c262:13"
+    ],
+    "facts": [
+     "ai_monitoring"
+    ],
+    "reading": "",
+    "predicted_only": true,
+    "umbrella": false
+   },
+   {
+    "title": "AI incident information",
+    "track": "AI Risk",
+    "ask": "Describe AI incidents.",
+    "ask_ids": [
+     "northstar:12c262:15"
+    ],
+    "facts": [
+     "ai_monitoring",
+     "incident_response"
+    ],
+    "reading": "",
+    "predicted_only": true,
+    "umbrella": false
+   }
+  ]
+ }
+}

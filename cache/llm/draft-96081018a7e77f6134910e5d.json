@@ -1,0 +1,50 @@
+{
+ "task": "draft",
+ "model": "openai/gpt-6.1-terra",
+ "usage": {
+  "prompt_tokens": 781,
+  "completion_tokens": 196,
+  "total_tokens": 977,
+  "cost": 0.001761,
+  "is_byok": false,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "cache_write_tokens": 0,
+   "audio_tokens": 0,
+   "video_tokens": 0
+  },
+  "cost_details": {
+   "upstream_inference_cost": 0.001761,
+   "upstream_inference_prompt_cost": 0.000781,
+   "upstream_inference_completions_cost": 0.00098
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 43,
+   "image_tokens": 0,
+   "audio_tokens": 0
+  }
+ },
+ "output": {
+  "sentences": [
+   {
+    "kind": "answer",
+    "text": "Northstar's data at rest is stored in AWS in Canada.",
+    "claim_ids": [
+     "C-3ec033-1"
+    ],
+    "pending_fact": "none"
+   },
+   {
+    "kind": "answer",
+    "text": "Inference geography is separate from storage geography; the actual inference location is not stated.",
+    "claim_ids": [
+     "C-3ec033-2"
+    ],
+    "pending_fact": "none"
+   }
+  ],
+  "internal_notes": [
+   "The actual inference location is not stated, so the customer's request to clarify inference geography remains incomplete."
+  ]
+ }
+}

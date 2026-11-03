@@ -10,6 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pn import drafting, engine, ledger  # noqa: E402
 from pn.sources import INBOX  # noqa: E402
+from scripts.warm_drafts import warm  # noqa: E402
+
+WARM = "--warm" in sys.argv
 
 SAMPLES = Path(__file__).resolve().parent.parent / "data" / "simulated" / "inputs"
 
@@ -58,6 +61,8 @@ try:
         for u in s.plan["updates"]:
             print("   UPDATE", u["kind"], u["req"],
                   [(c["fact"], c["was"]["status"], c["now"]["status"]) for c in u["changes"]])
+        if WARM:
+            warm(s)
         prev = now
     print("\nFINAL TOP ACTIONS")
     for a in s.plan["actions"][:12]:

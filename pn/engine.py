@@ -61,7 +61,18 @@ def build(as_of: date | None = None, offline: bool = False, ledger_path: Path | 
 
 
 def _load(st: State, deals_cfg: dict) -> tuple[list[Source], list[Source]]:
-    docs, questionnaires = load_sources(deals_cfg)
+    docs, questionnaires = load_sources(deals_cfg, st.errors)
+    # Looking back in time (as_of moved before the configured today): a source dated after as_of
+    # had not arrived yet, so it must not count. Undated sources are kept. At the configured
+    # today the demo's added inputs carry the next few days' dates and must still count.
+    today = date.fromisoformat(str(st.policy["as_of"]))
+    if st.as_of < today:
+        future = [s for s in docs + questionnaires if s.date and s.date > st.as_of]
+        if future:
+            st.errors.append(f"{len(future)} input(s) dated after {st.as_of} ignored (not yet "
+                             f"received): " + ", ".join(s.title for s in future))
+            docs = [s for s in docs if s not in future]
+            questionnaires = [s for s in questionnaires if s not in future]
     ok = lambda s: s.deal is None or s.deal in st.deal_names
     for s in docs + questionnaires:
         if ok(s):
@@ -83,6 +94,14 @@ def _extract(st: State, docs: list[Source], context_year, offline) -> list[Ask]:
             st.errors.append(f"{s.title}: {out['error']}")
             continue
         claims, asks, dropped = extract.to_objects(s, out)
+        if extract.looks_injected(s.text):
+            # "Ignore previous instructions...": its claims still go through the trust rules (a
+            # chat or email can never be evidence), but its "how to answer" instructions would go
+            # straight into the drafting prompt, so they are dropped and Jai is told.
+            n = sum(a.kind == "instruction" for a in asks)
+            asks = [a for a in asks if a.kind != "instruction"]
+            st.errors.append(f"{s.title}: looks like a prompt injection; review this input"
+                             + (f" ({n} instruction(s) from it ignored)." if n else "."))
         st.claims += claims
         st.dropped += [f"{s.title}: {d}" for d in dropped]
         for a in asks:
@@ -102,6 +121,8 @@ def _questionnaire_rows(st: State, questionnaires: list[Source]) -> list[tuple[S
             st.errors.append(f"{q.title}: a questionnaire needs a deal")
             continue
         rows, typed = parse_questionnaire(q)
+        if not rows:
+            st.errors.append(f"{q.title}: no questionnaire rows (needs a header with a 'question' column)")
         for a in rows:
             st.asks[a.id] = a
         drafts += [(q, d) for d in typed]

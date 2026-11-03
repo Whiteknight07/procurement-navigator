@@ -18,7 +18,7 @@ import json
 from . import llm
 from .llm import STR, arr, enum, obj
 from .planner import fact_key, label
-from .resolve import HINT
+from .resolve import HINT, tokens
 
 VERSION = "draft-v2"
 
@@ -77,6 +77,16 @@ def draft(req, state, offline=False) -> dict:
     return out
 
 
+def leaks(text: str, f) -> bool:
+    """A pending sentence leaks a fact's best guess if it contains every content word of that
+    guess. Words that are already in the fact's question (the topic, e.g. "retention") do not
+    count, so naming what is being confirmed is fine."""
+    if f.status == "verified" or not f.value:
+        return False
+    guess = tokens(f.value) - tokens(f.spec["question"])
+    return bool(guess) and guess <= tokens(text)
+
+
 def check(req, out: dict, state) -> dict:
     claims = {c.id: c for c in state.claims}
     allowed = {fact_key(req.deal, n, state.catalog) for n in req.facts}
@@ -102,6 +112,9 @@ def check(req, out: dict, state) -> dict:
             pf = s["pending_fact"]
             if pf in state.facts and state.facts[pf].status == "verified":
                 flags.append("marked pending but the fact is verified")
+            for k in sorted(allowed):
+                if leaks(s["text"], state.facts[k]):
+                    flags.append(f"states the unverified best guess for {label(k)}")
         per_sentence.append(flags)
         errors += [f"sentence {i + 1}: {f}" for f in flags]
 

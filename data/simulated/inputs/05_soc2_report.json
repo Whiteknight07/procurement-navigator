@@ -4,5 +4,6 @@
  "author": "Vanta",
  "date": "2026-11-06",
  "title": "Evidence: SOC 2 Type II 2026 report",
- "text": "SOC 2 Type II report, audit period Jan 1 - Sep 30, 2026: FINAL. Report issued Oct 28, 2026. No exceptions noted."
+ "text": "SOC 2 Type II report, audit period Jan 1 - Sep 30, 2026: FINAL. Report issued Oct 28, 2026. No exceptions noted.",
+ "connector": "vanta"
 }
