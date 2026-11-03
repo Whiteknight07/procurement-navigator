@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture: Procurement Navigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8F4; --panel:#E9EEE7; --ink:#26302E; --mut:#5E6B66; --rule:#CBD5CA; --sheet:#FFFFFF;
+  --model:#6A4C9C; --code:#24467A; --jai:#2E7D4F; --src:#7F8A85; --hi:#B8770B;
+  --body:"Public Sans",system-ui,sans-serif; --disp:"Archivo Narrow","Public Sans",sans-serif;
+}
+.t3{--paper:transparent; --panel:var(--secondary); --ink:var(--foreground); --mut:var(--muted-foreground);
+  --rule:var(--border); --sheet:var(--card); --model:#A58BE0; --code:#7FA6E6; --jai:#5DBA84; --src:#9AA5A0; --hi:#D9A03A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15.5px/1.6 var(--body)}
+.page{max-width:1260px;margin:0 auto;padding:36px 24px 80px}
+.t3 .page{padding:4px 2px 40px}
+h1,h2,h3{font-family:var(--disp);margin:0;font-weight:700}
+h1{font-size:46px;line-height:1.02;letter-spacing:-.01em;max-width:24ch}
+h2{font-size:28px;line-height:1.1;margin:44px 0 6px}
+h3{font-size:19px;line-height:1.2;margin-bottom:4px}
+p{margin:0 0 10px;max-width:72ch}
+.lead{font-size:18px;color:var(--mut);max-width:66ch;margin-top:10px}
+a{color:var(--code)}
+q{quotes:"\201C" "\201D";font-style:italic}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--code);outline-offset:3px;border-radius:3px}
+
+.key{display:flex;flex-wrap:wrap;gap:18px;margin:18px 0 8px;font-size:14px;color:var(--mut)}
+.key span{display:inline-flex;align-items:center;gap:7px}
+.key i{width:14px;height:14px;border-radius:3px;border:2px solid var(--c);background:var(--sheet)}
+.key i.fill{background:var(--c)}
+.key i.dash{border-style:dashed}
+
+/* the questions that drive the diagram */
+.asks{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.asks button{border:1.5px solid var(--rule);background:var(--sheet);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14.5px}
+.asks button:hover{border-color:var(--ink)}
+.asks button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.t3 .asks button[aria-pressed=true]{color:var(--background)}
+
+.diagram{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px;overflow-x:auto}
+svg{display:block;width:100%;min-width:980px;height:auto;font-family:var(--body)}
+.node{cursor:pointer}
+.node rect{fill:var(--sheet);stroke:var(--c);stroke-width:2;transition:opacity .2s}
+.node.data rect{fill:var(--panel);stroke:var(--ink);stroke-width:1.5}
+.node.src rect{stroke-dasharray:0;fill:var(--sheet)}
+.node.cat rect{stroke-dasharray:6 4}
+.node .band{fill:var(--c);stroke:none}
+.node .t{font:700 17px var(--disp);fill:var(--ink)}
+.node .w{font:600 11.5px var(--body);fill:#fff}
+.node .s{font-size:12.5px;fill:var(--mut)}
+.node .n{font:700 24px var(--disp);fill:var(--ink)}
+.node:hover rect,.node:focus-visible rect{stroke-width:3}
+.node.sel rect{stroke:var(--hi);stroke-width:3.5}
+.edge{fill:none;stroke:var(--mut);stroke-width:1.6;marker-end:url(#ar);transition:opacity .2s}
+.edge.dash{stroke-dasharray:5 4}
+.el{font-size:12px;fill:var(--mut);transition:opacity .2s}
+.el.b{font-weight:600;fill:var(--ink)}
+.lit .edge.on{stroke:var(--hi);stroke-width:3;marker-end:url(#arh)}
+.lit .el.on{fill:var(--hi);font-weight:600}
+.lit .node:not(.on) , .lit .edge:not(.on), .lit .el:not(.on){opacity:.18}
+.lane{font:600 12.5px var(--body);fill:var(--mut)}
+.laneline{stroke:var(--rule);stroke-width:1}
+
+.answer{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;margin-top:16px;min-height:220px}
+.answer .who{display:inline-block;font:600 13px var(--body);color:#fff;background:var(--c);padding:1px 9px;border-radius:3px;margin-bottom:8px}
+.answer h3{font-size:24px}
+.answer ul{margin:4px 0 10px;padding-left:20px}
+.answer li{margin:3px 0}
+.ex{background:var(--panel);border-radius:6px;padding:14px 16px;font-size:14.5px}
+.ex h4{margin:0 0 6px;font:600 14px var(--body);color:var(--mut)}
+.ex .row{display:grid;grid-template-columns:96px 1fr;gap:8px;border-top:1px solid var(--rule);padding:6px 0}
+.ex .row:first-of-type{border-top:0}
+.ex .row b{font-weight:600}
+.without{border-left:3px solid var(--hi);padding:2px 0 2px 12px;margin-top:10px}
+.without b{display:block;font:700 15px var(--disp)}
+.mut{color:var(--mut)} .small{font-size:13.5px}
+
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:10px}
+.three > div{border-top:3px solid var(--c);padding-top:10px}
+.three .n{font:700 34px var(--disp)}
+@media (max-width:820px){.answer,.three{grid-template-columns:1fr} h1{font-size:36px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+<p class="small mut"><a href="explainer.html">How it works, from the ground up</a> &nbsp;/&nbsp; <a href="why.html">The questions behind every choice</a></p>
+<h1>Two roads in, one plan out</h1>
+<p class="lead">Everything that arrives is split into two kinds of thing: <b>asks</b> (what the customer wants answered) and <b>statements</b> (what someone says is true). Asks become requirements. Statements settle questions. The planner puts the two together and says what to do next.</p>
+
+<div class="key">
+  <span><i style="--c:var(--src)"></i>An input, as it arrived</span>
+  <span><i class="fill" style="--c:var(--model)"></i>The model reads, code checks</span>
+  <span><i class="fill" style="--c:var(--code)"></i>Code decides</span>
+  <span><i class="fill" style="--c:var(--jai)"></i>Jai decides</span>
+  <span><i style="--c:var(--ink);background:var(--panel)"></i>What the system holds</span>
+  <span><i class="dash" style="--c:var(--ink)"></i>Jai's catalog</span>
+</div>
+
+<p class="small mut" style="margin:16px 0 0">Pick a question, or click any box.</p>
+<div class="asks" id="asks">
+  <button data-q="rows">Do questionnaire rows go through the extract model?</button>
+  <button data-q="reqs">Where do requirements come from?</button>
+  <button data-q="extract">Why have an extract model at all?</button>
+  <button data-q="two">What are statements and asks?</button>
+  <button data-q="planner">What does the planner do, and why?</button>
+  <button data-q="loop">What happens after Jai sends an answer?</button>
+</div>
+
+<div class="diagram">
+<svg id="svg" viewBox="0 0 1240 640" role="img" aria-label="Architecture: inputs split into asks and statements; asks merge into requirements, statements resolve questions into facts; the planner combines both; drafts are checked and approved by Jai and logged.">
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--mut)"/></marker>
+  <marker id="arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--hi)"/></marker>
+</defs>
+
+<!-- lane labels -->
+<text class="lane" x="20" y="26">Arrives</text>
+<text class="lane" x="232" y="26">Read</text>
+<text class="lane" x="422" y="26">Split into</text>
+<text class="lane" x="632" y="26">Combine and judge</text>
+<text class="lane" x="832" y="26">Result</text>
+<text class="lane" x="1042" y="26">Act</text>
+<line class="laneline" x1="20" y1="36" x2="1220" y2="36"/>
+
+<!-- edges -->
+<path class="edge" data-e="inQ-parse" d="M190 95H228"/>
+<path class="edge" data-e="inO-extract" d="M190 305H228"/>
+<path class="edge" data-e="parse-asks" d="M380 95H418"/>
+<text class="el b" data-e="parse-asks" x="386" y="88">120</text>
+<path class="edge" data-e="extract-asks" d="M380 290C400 290 400 160 418 150"/>
+<text class="el b" data-e="extract-asks" x="396" y="228" text-anchor="middle">64</text>
+<path class="edge" data-e="extract-stm" d="M380 320C400 320 400 370 418 375"/>
+<text class="el b" data-e="extract-stm" x="384" y="352">55</text>
+<path class="edge dash" data-e="parse-stm" d="M330 130C330 200 345 400 418 400"/>
+<text class="el" data-e="parse-stm" x="250" y="410">12 typed-in</text>
+<text class="el" data-e="parse-stm" x="250" y="425">draft answers,</text>
+<text class="el" data-e="parse-stm" x="250" y="440">only as hints</text>
+<path class="edge" data-e="asks-merge" d="M590 105H628"/>
+<path class="edge" data-e="stm-resolve" d="M590 375H628"/>
+<path class="edge" data-e="merge-reqs" d="M790 105H828"/>
+<path class="edge" data-e="resolve-q" d="M790 375H828"/>
+<path class="edge dash" data-e="reqs-q" d="M915 145V333"/>
+<text class="el" data-e="reqs-q" x="924" y="230">each requirement</text>
+<text class="el" data-e="reqs-q" x="924" y="245">needs some questions</text>
+<path class="edge" data-e="reqs-plan" d="M1000 105C1020 105 1020 190 1038 200"/>
+<path class="edge" data-e="q-plan" d="M1000 375C1020 375 1020 320 1038 310"/>
+<path class="edge" data-e="plan-draft" d="M1130 410V470"/>
+<text class="el" data-e="plan-draft" x="1138" y="444">Jai picks a</text>
+<text class="el" data-e="plan-draft" x="1138" y="458">ready answer</text>
+<path class="edge" data-e="q-draft" d="M915 417C915 455 1040 445 1062 470"/>
+<text class="el" data-e="q-draft" x="926" y="452">facts only</text>
+<path class="edge" data-e="draft-jai" d="M1040 530H1000" />
+<path class="edge" data-e="jai-ledger" d="M830 590H790"/>
+<path class="edge" data-e="ledger-plan" d="M630 588H612V630H1232V300H1222"/>
+<text class="el" data-e="ledger-plan" x="790" y="620">what was sent, and the facts it used: so the planner can say an update is owed</text>
+<path class="edge dash" data-e="cat-extract" d="M305 470V349"/>
+<path class="edge dash" data-e="cat-merge" d="M380 495H610C620 495 620 152 700 149"/>
+<path class="edge dash" data-e="cat-resolve" d="M380 510H700V419"/>
+
+<!-- nodes: x y w h -->
+<g class="node src" data-n="inQ" tabindex="0" role="button" style="--c:var(--src)">
+  <rect x="20" y="55" width="170" height="80" rx="6"/>
+  <text class="t" x="34" y="82">Questionnaires</text>
+  <text class="s" x="34" y="102">2 spreadsheets from</text><text class="s" x="34" y="118">the customer</text>
+</g>
+<g class="node src" data-n="inO" tabindex="0" role="button" style="--c:var(--src)">
+  <rect x="20" y="245" width="170" height="120" rx="6"/>
+  <text class="t" x="34" y="272">Everything else</text>
+  <text class="s" x="34" y="294">20 sources: customer</text><text class="s" x="34" y="310">emails, Slack, Drive files,</text><text class="s" x="34" y="326">Vanta documents, notes,</text><text class="s" x="34" y="342">the people directory</text>
+</g>
+<g class="node" data-n="parse" tabindex="0" role="button" style="--c:var(--code)">
+  <rect x="230" y="55" width="150" height="80" rx="6"/><rect class="band" x="230" y="55" width="150" height="22" rx="6"/><rect class="band" x="230" y="68" width="150" height="9"/>
+  <text class="w" x="242" y="70">Code</text>
+  <text class="t" x="242" y="100">Read rows</text>
+  <text class="s" x="242" y="122">one row, one ask</text>
+</g>
+<g class="node" data-n="extract" tabindex="0" role="button" style="--c:var(--model)">
+  <rect x="230" y="262" width="150" height="85" rx="6"/><rect class="band" x="230" y="262" width="150" height="22" rx="6"/><rect class="band" x="230" y="275" width="150" height="9"/>
+  <text class="w" x="242" y="277">Model, then code</text>
+  <text class="t" x="242" y="307">Extract</text>
+  <text class="s" x="242" y="327">one call per source</text>
+</g>
+<g class="node data" data-n="asks" tabindex="0" role="button">
+  <rect x="420" y="55" width="170" height="100" rx="6"/>
+  <text class="t" x="434" y="82">Asks</text><text class="n" x="576" y="84" text-anchor="end">184</text>
+  <text class="s" x="434" y="104">120 questionnaire rows</text><text class="s" x="434" y="120">30 from customer emails</text><text class="s" x="434" y="136">34 predicted</text>
+</g>
+<g class="node data" data-n="stm" tabindex="0" role="button">
+  <rect x="420" y="335" width="170" height="80" rx="6"/>
+  <text class="t" x="434" y="362">Statements</text><text class="n" x="576" y="364" text-anchor="end">67</text>
+  <text class="s" x="434" y="384">one quote, one source,</text><text class="s" x="434" y="400">one question</text>
+</g>
+<g class="node" data-n="merge" tabindex="0" role="button" style="--c:var(--model)">
+  <rect x="630" y="62" width="160" height="85" rx="6"/><rect class="band" x="630" y="62" width="160" height="22" rx="6"/><rect class="band" x="630" y="75" width="160" height="9"/>
+  <text class="w" x="642" y="77">Model, then code</text>
+  <text class="t" x="642" y="107">Merge asks</text>
+  <text class="s" x="642" y="127">same need, one item</text>
+</g>
+<g class="node" data-n="resolve" tabindex="0" role="button" style="--c:var(--code)">
+  <rect x="630" y="332" width="160" height="85" rx="6"/><rect class="band" x="630" y="332" width="160" height="22" rx="6"/><rect class="band" x="630" y="345" width="160" height="9"/>
+  <text class="w" x="642" y="347">Code (model labels pairs)</text>
+  <text class="t" x="642" y="377">Compare, resolve</text>
+  <text class="s" x="642" y="397">whose word counts</text>
+</g>
+<g class="node data" data-n="reqs" tabindex="0" role="button">
+  <rect x="830" y="62" width="170" height="85" rx="6"/>
+  <text class="t" x="844" y="89">Requirements</text><text class="n" x="986" y="91" text-anchor="end">68</text>
+  <text class="s" x="844" y="111">what each customer</text><text class="s" x="844" y="127">needs answered</text>
+</g>
+<g class="node data" data-n="q" tabindex="0" role="button">
+  <rect x="830" y="335" width="170" height="80" rx="6"/>
+  <text class="t" x="844" y="362">Questions</text><text class="n" x="986" y="364" text-anchor="end">52</text>
+  <text class="s" x="844" y="384">5 settled as facts;</text><text class="s" x="844" y="400">47 show why not yet</text>
+</g>
+<g class="node" data-n="plan" tabindex="0" role="button" style="--c:var(--code)">
+  <rect x="1040" y="160" width="180" height="250" rx="6"/><rect class="band" x="1040" y="160" width="180" height="22" rx="6"/><rect class="band" x="1040" y="173" width="180" height="9"/>
+  <text class="w" x="1052" y="175">Code</text>
+  <text class="t" x="1052" y="206">Planner</text>
+  <text class="s" x="1052" y="230">For each requirement:</text>
+  <text class="s" x="1052" y="246">ready, open or blocked</text>
+  <text class="s" x="1052" y="272">Actions only where</text>
+  <text class="s" x="1052" y="288">work can start</text>
+  <text class="s" x="1052" y="314">Ranked by how many</text>
+  <text class="s" x="1052" y="330">answers wait on each</text>
+  <text class="s" x="1052" y="356">One message per person</text>
+  <text class="s" x="1052" y="382">Updates owed, at risk</text>
+</g>
+<g class="node" data-n="draft" tabindex="0" role="button" style="--c:var(--model)">
+  <rect x="1040" y="472" width="180" height="80" rx="6"/><rect class="band" x="1040" y="472" width="180" height="22" rx="6"/><rect class="band" x="1040" y="485" width="180" height="9"/>
+  <text class="w" x="1052" y="487">Model, then code</text>
+  <text class="t" x="1052" y="517">Draft and check</text>
+  <text class="s" x="1052" y="537">every sentence cites</text>
+</g>
+<g class="node" data-n="jai" tabindex="0" role="button" style="--c:var(--jai)">
+  <rect x="830" y="500" width="170" height="110" rx="6"/><rect class="band" x="830" y="500" width="170" height="22" rx="6"/><rect class="band" x="830" y="513" width="170" height="9"/>
+  <text class="w" x="842" y="515">Jai</text>
+  <text class="t" x="842" y="545">Approve and send</text>
+  <text class="s" x="842" y="567">reads each sentence</text><text class="s" x="842" y="583">next to its quote</text>
+</g>
+<g class="node data" data-n="ledger" tabindex="0" role="button">
+  <rect x="630" y="560" width="160" height="56" rx="6"/>
+  <text class="t" x="642" y="584">Ledger</text>
+  <text class="s" x="642" y="603">every send, logged</text>
+</g>
+<g class="node cat" data-n="cat" tabindex="0" role="button" style="--c:var(--ink)">
+  <rect x="230" y="470" width="150" height="80" rx="6"/>
+  <text class="t" x="242" y="496">Catalog</text>
+  <text class="s" x="242" y="516">52 questions: owner,</text><text class="s" x="242" y="532">what settles it, max age</text>
+</g>
+</svg>
+</div>
+
+<div class="answer" id="answer" aria-live="polite"></div>
+
+<h2>Where requirements come from</h2>
+<p>From three places, and only one of them needs the extract model. Then one merge call per deal turns all 184 asks into 68 requirements.</p>
+<div class="three">
+  <div style="--c:var(--code)"><div class="n">120</div><h3>Questionnaire rows</h3><p class="small">Code reads them; no model. A spreadsheet already has an id and a question per row, so a model would only add risk. Example: <q>Provide latest penetration test and remediation status.</q> (Acme Q-008)</p></div>
+  <div style="--c:var(--model)"><div class="n">30</div><h3>Customer emails</h3><p class="small">The extract model finds them, because an email is prose. Example from Acme's email: <q>Complete the supplier profile.</q> Not every ask is a question: <q>Target an October production pilot</q> is a deadline, and <q>Answer for the configuration Acme would receive</q> is an instruction for how to answer.</p></div>
+  <div style="--c:var(--model)"><div class="n">34</div><h3>Predicted</h3><p class="small">Also from extract, but from Lantern's own guidance and Jai's notes: what customers like this usually ask next. Example: <q>Provide a recent red-team or penetration-test report; evidence older than about six months may not work.</q> These are marked predicted, so Jai can prepare before the customer asks.</p></div>
+</div>
+<p style="margin-top:18px">All three of those pen test asks are the same need. The merge call puts them in one requirement, <b>acme:Q-008 Penetration test and remediation</b>, linked to two questions: <code>pen_test</code> and <code>pen_test_remediation</code>. Answering it once answers all three.</p>
+
+</div>
+
+<script>
+if (getComputedStyle(document.documentElement).getPropertyValue("--background").trim()) document.documentElement.classList.add("t3");
+
+const C={model:"var(--model)",code:"var(--code)",jai:"var(--jai)",src:"var(--src)",data:"var(--ink)"};
+const N={
+ inQ:{who:"Input",c:"src",t:"Questionnaires",
+  what:["The customer's security spreadsheet: an id, a section and a question per row. Acme has rounds 1 and 2.","Some rows already have a draft answer typed in by someone at Lantern."],
+  why:"This is the main thing the customer wants answered.",
+  ex:[["Row","Q-004: Retention by data type"],["Typed in","30 days?"]],
+  without:"It is the work itself; there is nothing to remove."},
+ inO:{who:"Input",c:"src",t:"Everything else",
+  what:["Customer emails, internal Slack, Drive files, Vanta documents, Jai's notes, and the people directory (who owns what, how fast they reply).","Stored exactly as it arrived; never edited."],
+  why:"Answers and extra asks are scattered across all of these. That scatter is the problem the brief describes.",
+  ex:[["Slack","Anthony: “Checked the Acme deployment config. App logs are 14 days…”"],["Email","Acme: “Complete the supplier profile.”"]],
+  without:"Jai is back to reading every thread by hand."},
+ parse:{who:"Code",c:"code",t:"Read rows",
+  what:["Finds the id, section and question columns (it knows common header names like ref or control question).","Each row becomes one ask. Typed-in draft answers become hint statements, so a wrong draft gets flagged.","Rows that are the same boilerplate with only the number changed are held as ‘no question text’."],
+  why:"A spreadsheet is already structured. Code reads it exactly, every time, at no cost. A model could skip or reword a row.",
+  ex:[["In","Q-008, Provide latest penetration test and remediation status."],["Out","ask acme:R1:Q-008"]],
+  without:"If we sent rows through the model, a row could go missing and no one would notice."},
+ extract:{who:"Model, then code",c:"model",t:"Extract",
+  what:["One model call per source. It reads prose and returns two lists: statements and asks.","A statement: which catalog question, the value, the exact quote, who said it, and how (as evidence, as settled, as a plan, or undecided).","An ask: something the customer wants, a deadline, a condition, or an instruction for how to answer.","Code then checks every quote is really in the source, and every question is in the catalog. Anything else is dropped and shown."],
+  why:"Emails and Slack are free text. Only a language model can tell that “App logs are 14 days” is about Acme's log retention, said by the owner, as settled. Code can't read that; the model can't be trusted alone, so code checks it.",
+  ex:[["In","Anthony on Slack: “App logs are 14 days. Storage is AWS ca-central-1.”"],["Out","2 statements: retention_app_logs = 14 days; storage_region = AWS ca-central-1. Both by the owner, as settled."]],
+  without:"Someone has to read every thread and type what it says into a form. That is Jai's job today."},
+ asks:{who:"What the system holds",c:"data",t:"Asks",
+  what:["Every separate thing a customer has asked for, from any place, before merging.","120 come from questionnaire rows (code), 30 from customer emails and 34 predicted from Lantern's guidance (both from extract).","An ask is not a requirement yet: the same need often arrives three times."],
+  why:"Keeping every ask with its source means Jai can see where a requirement came from, and nothing the customer said is lost.",
+  ex:[["Row","Provide latest penetration test and remediation status."],["Predicted","Provide penetration testing information."]],
+  without:"Requirements would have no trail back to what the customer actually wrote."},
+ stm:{who:"What the system holds",c:"data",t:"Statements",
+  what:["What one source says about one question: a value and the exact quote.","55 come from extract. 12 are draft answers typed into the questionnaire, which only ever count as hints.","Statements never overwrite each other. Four can disagree about one question, and all four stay."],
+  why:"Keeping every statement is what lets the system show a disagreement instead of quietly picking one.",
+  ex:[["Plan","Acme draft config: “App logs intended 14 days.”"],["Hint","Old product doc: “Standard application logs: 30 days.”"]],
+  without:"You'd keep only one value per question, and lose who said what."},
+ merge:{who:"Model, then code",c:"model",t:"Merge asks",
+  what:["One call per deal. It groups asks that are the same need into one requirement, and links each requirement to the catalog questions it depends on.","Later rounds are matched to round 1 by meaning: same, repeat with changes, or new.","Code rejects any id the model wasn't shown, so it can't invent a question."],
+  why:"This needs every ask of the deal at once, because “are these two the same need?” can only be answered by looking across sources. Extract sees one source at a time, so it can't do this.",
+  ex:[["In","3 asks: Q-008 row, a predicted pen test ask, Jai's note about six-month-old evidence"],["Out","1 requirement, acme:Q-008, needs pen_test and pen_test_remediation"]],
+  without:"Jai answers the same question three times, and no answer is linked to what proves it."},
+ resolve:{who:"Code (the model only labels pairs)",c:"code",t:"Compare, resolve",
+  what:["Compare: when two statements give different values for one question, the model labels the pair: agree, adds detail, conflicts, or a different aspect.","Resolve: code ranks whose word counts (a document, then the owner, then a plan or chat; hints never count), checks the catalog for what settles this question, checks age and expiry.","Out comes one status per question, with a reason in plain words."],
+  why:"Whether something is true is a rule Jai can check, so code decides it. The model only answers “do these two quotes disagree?”, which is a language question.",
+  ex:[["Before","retention_app_logs: a plan says 14 days. Unconfirmed."],["After","Anthony (the owner) says 14 days. Now a fact."]],
+  without:"A model would decide what's true, and you couldn't explain why."},
+ reqs:{who:"What the system holds",c:"data",t:"Requirements",
+  what:["One distinct thing a customer needs answered, with the asks it came from and the questions it needs.","68 across both deals."],
+  why:"It is the unit Jai answers and sends.",
+  ex:[["acme:Q-004","Retention by data type. Needs 4 questions: app logs, traces, prompts, source files."]],
+  without:"There is nothing to plan against."},
+ q:{who:"What the system holds",c:"data",t:"Questions and facts",
+  what:["One entry per catalog question, per deal where it differs.","A settled question is a fact: 5 now. The other 47 show why not: unknown, undecided, conflicting, unconfirmed or out of date."],
+  why:"An answer can only state facts. Everything else is work to do.",
+  ex:[["Fact","Acme data residency: Canada, from Elena's email."],["Not yet","Pen test: out of date, 275 days old, policy allows 183."]],
+  without:"Drafts would state guesses as if they were true."},
+ plan:{who:"Code",c:"code",t:"Planner",
+  what:["Joins the two roads. For each requirement it checks its questions: all facts means ready; some not settled means open; waiting on another question means blocked.","It turns every unsettled question into an action for one person: confirm, get evidence, renew, decide, ask the customer.","It drops actions nobody can start yet, and ranks the rest by how many answers wait on each one, using reply times from the directory.","It batches one message per person, and compares the ledger with today's facts to find updates owed and answers at risk."],
+  why:"Knowing what is unsettled isn't enough. The brief asks what to do next. 47 unsettled questions are a list; the planner turns them into “ask Acme for the 37 missing control texts first, it unblocks 37 rows”. It is code because ranking and dependencies are arithmetic.",
+  ex:[["Top action","Ask Acme for the real text of 37 controls. Unblocks 37 rows."],["Batch","One message to Anthony with 17 items, each with our best guess to confirm."]],
+  without:"Jai gets a pile of statuses and still has to work out the order, who to ask, and what is blocked by what."},
+ draft:{who:"Model, then code",c:"model",t:"Draft and check",
+  what:["Only when Jai asks, for one requirement. The model writes the answer from facts only, citing a statement for every sentence.","Unsettled parts become pending lines naming the owner, and must not leak the best guess.","Code checks every citation and blocks approval if a rule breaks."],
+  why:"Writing a customer-ready paragraph is language work. The checker makes sure it says nothing that isn't a fact.",
+  ex:[["Sentence","App logs are retained for 14 days."],["Cites","Anthony's Slack, 4 Nov"]],
+  without:"Jai writes every answer by hand, or a model writes one with nothing stopping a guess."},
+ jai:{who:"Jai",c:"jai",t:"Approve and send",
+  what:["Jai reads each sentence next to its quote, then approves. Nothing reaches the customer without this."],
+  why:"Jai is accountable for what the customer is told. The system prepares; Jai decides.",
+  ex:[["Approve","acme:Q-004, after the 4 Nov rebuild"]],
+  without:"The tool would be talking to customers on its own."},
+ ledger:{who:"What the system holds",c:"data",t:"Ledger",
+  what:["A log of every sent answer, with a snapshot of the facts it used.","The planner reads it on every rebuild."],
+  why:"When a fact changes after an answer was sent, the planner can say an update is owed, but only once the new value is itself a fact, so Jai isn't told to correct the customer on a rumour.",
+  ex:[["Sent","Q-007 told Acme the 2025 SOC 2 report"],["Later","The 2026 report is now a fact: update owed"]],
+  without:"Old answers silently go stale."},
+ cat:{who:"Jai's knowledge, written down",c:"data",t:"Catalog",
+  what:["The list of 52 questions the system knows about: owner, what settles it (a document, the owner, or the customer), max age, and what it depends on.","Extract maps statements onto it; merge links requirements to it; resolve uses its rules."],
+  why:"It is the domain model, and the part that took Jai's knowledge. The model can't invent a question that isn't here.",
+  ex:[["pen_test","Owner Engineering. Settled by a document. Max age 183 days."]],
+  without:"Every model call would invent its own names for things, and nothing would line up."},
+};
+
+// question -> nodes and edges to light, plus which node's card to show
+const Q={
+ rows:{n:["inQ","parse","asks","stm","merge","reqs"],e:["inQ-parse","parse-asks","parse-stm","asks-merge","merge-reqs"],card:"parse",
+   head:"No. Questionnaire rows skip the extract model.",
+   body:"Code reads the spreadsheet: one row, one ask. They meet the email asks at the next step, the merge. The only model calls a row ever sees are the merge (to group it with other asks) and, later, the draft."},
+ reqs:{n:["inQ","inO","parse","extract","asks","merge","reqs","cat"],e:["inQ-parse","inO-extract","parse-asks","extract-asks","asks-merge","merge-reqs","cat-merge"],card:"merge",
+   head:"From 184 asks, merged into 68.",
+   body:"Asks come from three places: questionnaire rows (code), customer emails and predicted asks (both extract). The merge call groups the ones that mean the same need, and links each requirement to catalog questions. See the three sources below the diagram."},
+ extract:{n:["inO","extract","asks","stm","cat"],e:["inO-extract","extract-asks","extract-stm","cat-extract"],card:"extract",
+   head:"Because most of what matters is prose.",
+   body:"An email or a Slack thread has no columns. Something has to read it and say: this sentence is about Acme's log retention, it was said by the owner, and it's settled. That is what extract does, one source at a time. Code then checks every quote is really there."},
+ two:{n:["extract","asks","stm","parse"],e:["extract-asks","extract-stm","parse-asks","parse-stm"],card:"extract",
+   head:"Asks are what the customer wants. Statements are what someone says is true.",
+   body:"Two kinds of sentence. Acme's email says “Complete the supplier profile”: that is an ask, and it becomes part of a requirement. Anthony's Slack says “Storage is AWS ca-central-1”: that is a statement, and it helps settle a question. One source can hold both, so extract returns both lists from one call. Asks flow up the top road to requirements; statements flow along the bottom road to facts."},
+ planner:{n:["reqs","q","plan"],e:["reqs-plan","q-plan","reqs-q"],card:"plan",
+   head:"It turns ‘what's unsettled’ into ‘what to do, in what order’.",
+   body:"The two roads only meet here. Requirements say what the customer needs; questions say what is settled. The planner joins them: which answers are ready, which are blocked, and which single action unblocks the most."},
+ loop:{n:["plan","draft","jai","ledger","q"],e:["plan-draft","q-draft","draft-jai","jai-ledger","ledger-plan"],card:"ledger",
+   head:"It is logged, and the planner keeps watching it.",
+   body:"Each send stores the facts it used. If one of those facts changes later, and the new value is itself a fact, the planner raises an update owed."},
+};
+
+const svg=document.getElementById("svg"), ans=document.getElementById("answer");
+const nodes=[...svg.querySelectorAll(".node")], edges=[...svg.querySelectorAll("[data-e]")];
+function card(k, head, body){
+  const d=N[k];
+  ans.innerHTML=`<div>
+    ${head?`<h3>${head}</h3><p>${body}</p><hr style="border:0;border-top:1px solid var(--rule);margin:14px 0">`:""}
+    <span class="who" style="--c:${C[d.c]}">${d.who}</span>
+    <h3>${d.t}</h3><ul>${d.what.map(x=>`<li>${x}</li>`).join("")}</ul>
+    <div class="without"><b>Why it exists</b>${d.why}</div></div>
+   <div><div class="ex"><h4>Real example</h4>${d.ex.map(r=>`<div class="row"><b>${r[0]}</b><span>${r[1]}</span></div>`).join("")}</div>
+    <div class="without" style="margin-top:16px"><b>Without it</b>${d.without}</div></div>`;
+}
+function light(ns,es,sel){
+  svg.classList.add("lit");
+  nodes.forEach(g=>{g.classList.toggle("on",ns.includes(g.dataset.n));g.classList.toggle("sel",g.dataset.n===sel)});
+  edges.forEach(e=>e.classList.toggle("on",es.includes(e.dataset.e)));
+}
+function pickNode(k){
+  document.querySelectorAll("#asks button").forEach(b=>b.setAttribute("aria-pressed","false"));
+  const es=edges.map(e=>e.dataset.e).filter(e=>e.split("-").includes(k));
+  const ns=[k,...es.flatMap(e=>e.split("-"))];
+  light(ns,es,k); card(k);
+}
+function pickQ(q){
+  document.querySelectorAll("#asks button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.q===q));
+  const s=Q[q]; light(s.n,s.e,s.card); card(s.card,s.head,s.body);
+}
+nodes.forEach(g=>{g.addEventListener("click",()=>pickNode(g.dataset.n));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pickNode(g.dataset.n)}});
+  g.setAttribute("aria-label",N[g.dataset.n].t)});
+document.querySelectorAll("#asks button").forEach(b=>b.onclick=()=>pickQ(b.dataset.q));
+pickQ("rows");
+</script>
+</body>
+</html>
